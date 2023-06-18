@@ -1,0 +1,4 @@
+/home/jiaxv/inoproject/Acars_Sim_C/cmake-build-debug/CMakeFiles/Acars_Sim_C.dir
+/home/jiaxv/inoproject/Acars_Sim_C/cmake-build-debug/CMakeFiles/acarstrans.dir
+/home/jiaxv/inoproject/Acars_Sim_C/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/jiaxv/inoproject/Acars_Sim_C/cmake-build-debug/CMakeFiles/rebuild_cache.dir

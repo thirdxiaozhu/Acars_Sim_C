@@ -1,0 +1,4 @@
+/home/jiaxv/clion-2023.1/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/jiaxv/inoproject/Acars_Sim_C -B /home/jiaxv/inoproject/Acars_Sim_C/cmake-build-debug
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/jiaxv/inoproject/Acars_Sim_C/cmake-build-debug

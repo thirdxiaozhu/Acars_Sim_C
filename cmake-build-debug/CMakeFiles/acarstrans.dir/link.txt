@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC -g -shared -Wl,-soname,libacarstrans.so -o libacarstrans.so CMakeFiles/acarstrans.dir/GenMsg.c.o CMakeFiles/acarstrans.dir/Modulator.c.o CMakeFiles/acarstrans.dir/acars_sim.c.o CMakeFiles/acarstrans.dir/hackrf.c.o  -lhackrf -lm 

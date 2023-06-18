@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC -shared -Wl,-soname,libtests.so -o libtests.so CMakeFiles/tests.dir/GenMsg.c.o CMakeFiles/tests.dir/Modulator.c.o CMakeFiles/tests.dir/acars_sim.c.o CMakeFiles/tests.dir/hackrf.c.o  -lhackrf -lm 

@@ -101,8 +101,8 @@ void AM(struct message_format *mf, float *cpfsk) {
     free(output_i);
 
     FILE *_outfile;
-    if ((_outfile = fopen("/home/jiaxv/inoproject/Acars_Sim_C/test.txt", "wt+")) == NULL) {
-        puts("Fail to open file!");
+    if ((_outfile = fopen("test.txt", "wt+")) == NULL) {
+        puts("Open IQ file failed!");
         exit(0);
     }
 

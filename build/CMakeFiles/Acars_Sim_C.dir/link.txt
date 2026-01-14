@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/Acars_Sim_C.dir/GenMsg.c.o CMakeFiles/Acars_Sim_C.dir/Modulator.c.o CMakeFiles/Acars_Sim_C.dir/acars_sim.c.o CMakeFiles/Acars_Sim_C.dir/hackrf.c.o -o Acars_Sim_C  -lhackrf -lm 

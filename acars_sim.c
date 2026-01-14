@@ -228,7 +228,7 @@ int regex_char(char *regex, char c) {
 //    //mf->total_length = (prekey_len + forelen + mf->text_len + taillen) * 8;
 //}
 
-int GetMsg_2(struct message_format * mf) {
+int get_msg_2(struct message_format * mf) {
     int forelen;
 
     mf->crc = (uint8_t *) malloc(sizeof(uint8_t) * BCS_len);
@@ -383,7 +383,7 @@ int GetMsg_2(struct message_format * mf) {
     //mf->total_length = (prekey_len + forelen + mf->text_len + taillen) * 8;
 }
 
-void showVersion() {
+void show_version() {
     printf("Acars Simulator version %.1f\n", VERSION);
     printf("Copyright (C) 2022 Civil Aviation University of China (CAUC).\n");
     printf("This is free software, and you are welcome to redistribute it.\n");
@@ -403,13 +403,12 @@ void usage() {
 int main(int argc, char **argv) {
     int c;
     int mode = MANUAL;
-    char *freq_c;
-    char *vga_c;
-    bool istest = false;
+    char *freq_c = "131450000";
+    char *vga_c = "20";
     hd = (struct hackrf_devs *) malloc(sizeof (struct hackrf_devs));
     mf = (struct message_format *) malloc(sizeof(struct message_format));
 
-    while ((c = getopt(argc, argv, "d:f:x:t:Rvhi")) != EOF) {
+    while ((c = getopt(argc, argv, "d:f:x:t:Rvh")) != EOF) {
         switch (c) {
             case 'd':
                 hd->serial_number = optarg;
@@ -431,17 +430,14 @@ int main(int argc, char **argv) {
             case 'R':
                 hd->is_repeat = true;
                 break;
-            case 'i':
-                istest = true;
-                break;
             case 'v':
-                showVersion();
+                show_version();
                 return 0;
             case 'h':
                 usage();
                 return 0;
             default:
-                showVersion();
+                show_version();
                 usage();
                 return 0;
         }
@@ -461,8 +457,8 @@ int main(int argc, char **argv) {
 
 
     if (mode == MANUAL) {
-        GetMsg_2(mf);
-        mergeElements(mf);
+        get_msg_2(mf);
+        merge_elements(mf);
         modulate(mf);
     }
     hd->data = mf->complex_i8;

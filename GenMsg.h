@@ -95,7 +95,7 @@ static unsigned short crc16_ccitt_table[256] =
         };
 #define update_crc(crc,c) crc= (crc>> 8)^crc16_ccitt_table[(crc^(c))&0xff];
 
-void mergeElements(upm *);
+void merge_elements(upm *);
 
 void parity(uint8_t *dst, const uint8_t *src, int msg_len) ;
 

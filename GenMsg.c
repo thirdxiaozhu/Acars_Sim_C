@@ -10,7 +10,7 @@
 
 #define appendChar(dst, src) *(dst) = src;
 
-void mergeElements(upm *u) {
+void merge_elements(upm *u) {
     int forelen;
     if (u->isUp == 0) {
         forelen = up_forelen;

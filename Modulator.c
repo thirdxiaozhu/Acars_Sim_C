@@ -21,7 +21,7 @@ const float msk_a[] = {1.0, -1.0};
 const float am_b[] = {0.00013651, 0.00027302, 0.00013651};
 const float am_a[] = {1.0, -1.96668139, 0.96722743};
 
-void modulate(upm *mf) {
+void modulate(message_format *mf) {
     mf->cpfsk =  (float *) malloc(sizeof(float) * mf->total_length * F_S);
     float  * cpfsk = mf->cpfsk;
     MSK(mf, cpfsk);

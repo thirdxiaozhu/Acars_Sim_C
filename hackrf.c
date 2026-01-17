@@ -33,7 +33,6 @@ uint64_t stream_amplitude = 0;    /* sum of magnitudes of all I&Q samples, reset
 
 bool hw_sync = false;
 uint32_t hw_sync_enable = 0;
-
 int64_t freq;
 
 int vga_tx;
@@ -85,15 +84,13 @@ TimevalDiff(const struct timeval *a, const struct timeval *b) {
     return (a->tv_sec - b->tv_sec) + 1e-6f * (a->tv_usec - b->tv_usec);
 }
 
-int initHackRF(bool repeat, const char *serial_number, const char *path, const int *vga_p, const int64_t *freq_p, const char * data) {
-    int result;
-    vga_tx = *vga_p;
-    freq = *freq_p;
+int initHackRF(const bool repeat, const char *serial_number, const char *path, const int vga_p, const int64_t freq_p, const char *data) {
+    vga_tx = vga_p;
+    freq = freq_p;
     isRepeat = repeat;
-    //messageFormat = mf;
     iq_data = data;
 
-    result = hackrf_init();
+    int result = hackrf_init();
     if (result != HACKRF_SUCCESS) {
         fprintf(stderr, "hackrf_init() failed: %s (%d)\n", hackrf_error_name(result), result);
         return EXIT_FAILURE;
@@ -266,8 +263,8 @@ void showEssence(){
     fprintf(stderr,"\n");
 }
 
-int Transmit(struct hackrf_devs * hd){
-    if(initHackRF(hd->is_repeat, hd->serial_number, hd->path, &hd->vga_p, &hd->freq_p, hd->data) != EXIT_SUCCESS){
+int transmit(const hackrf_devs * hd){
+    if(initHackRF(hd->is_repeat, hd->serial_number, hd->path, hd->vga_p, hd->freq_p, hd->data) != EXIT_SUCCESS){
         fprintf(stderr, "Init HackRF Failed!");
         return EXIT_FAILURE;
     }

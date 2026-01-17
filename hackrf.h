@@ -14,14 +14,14 @@ typedef struct hackrf_devs {
     bool is_repeat;
     char * serial_number;
     char * path;
-    int vga_p;
+    uint32_t vga_p;
     int64_t freq_p;
     char * data;
 }hackrf_devs;
 
-int Transmit(struct hackrf_devs *);
+int transmit(const hackrf_devs *);
 
-int initHackRF(bool repeat, const char *, const char *, const int *, const int64_t *, const char * data);
+int initHackRF(bool repeat, const char *, const char *, int, int64_t, const char * data);
 
 int startTransmit();
 

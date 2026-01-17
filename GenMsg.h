@@ -56,7 +56,7 @@ typedef struct message_format {
     int complex_length;
     float * cpfsk;
     char *complex_i8; //signed char  <--> __int_8
-} upm;
+} message_format;
 
 static unsigned short crc16_ccitt_table[256] =
         {
@@ -95,7 +95,7 @@ static unsigned short crc16_ccitt_table[256] =
         };
 #define update_crc(crc,c) crc= (crc>> 8)^crc16_ccitt_table[(crc^(c))&0xff];
 
-void merge_elements(upm *);
+void merge_elements(message_format *);
 
 void parity(uint8_t *dst, const uint8_t *src, int msg_len) ;
 

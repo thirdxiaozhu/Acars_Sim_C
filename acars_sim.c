@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <getopt.h>
 #include <regex.h>
-#include "GenMsg.h"
-#include "Modulator.h"
+#include "pkt.h"
+#include "modulator.h"
 #include "hackrf.h"
 #include "acarstrans.h"
 #include "util.h"
@@ -123,8 +123,6 @@ int generate_pkt(struct message_format * mf) {
     while (true) {
         char mode[1] = {0};
         get_input(LIGHT_GREEN"Mode: ", 1, mode);
-        // printf(LIGHT_GREEN"Mode: ");
-        // scanf(" %c", &mf->mode);
         mf->mode = *mode;
         if (mf->mode == '2') {
             break;

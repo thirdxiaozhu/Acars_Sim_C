@@ -7,7 +7,7 @@
 
 #include <libhackrf/hackrf.h>
 #include <stdbool.h>
-#include "GenMsg.h"
+#include "pkt.h"
 
 
 typedef struct hackrf_devs {

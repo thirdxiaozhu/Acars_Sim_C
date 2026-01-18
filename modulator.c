@@ -5,9 +5,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
-#include "Modulator.h"
+#include "modulator.h"
 #include <emmintrin.h>
-#include "GenMsg.h"
+#include "pkt.h"
 
 #ifndef max
 #define    max(A, B) ((A)>(B) ? (A) : (B))
@@ -23,7 +23,7 @@ const float am_a[] = {1.0, -1.96668139, 0.96722743};
 
 void modulate(message_format *mf) {
     mf->cpfsk =  (float *) malloc(sizeof(float) * mf->total_length * F_S);
-    float  * cpfsk = mf->cpfsk;
+    float *cpfsk = mf->cpfsk;
     MSK(mf, cpfsk);
     AM(mf, cpfsk);
     free(cpfsk);

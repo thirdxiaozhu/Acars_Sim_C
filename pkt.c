@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "GenMsg.h"
+#include "pkt.h"
 
 #define appendChar(dst, src) *(dst) = src;
 

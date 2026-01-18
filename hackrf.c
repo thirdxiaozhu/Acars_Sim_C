@@ -11,7 +11,7 @@
 #include <math.h>
 #include <signal.h>
 #include "hackrf.h"
-#include "GenMsg.h"
+#include "pkt.h"
 
 #define SAMP_RATE 1152000
 #define HW_SYNC_MODE_OFF 0

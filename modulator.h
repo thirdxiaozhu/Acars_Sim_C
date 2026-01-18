@@ -6,7 +6,7 @@
 #define ACARS_SIM_C_MODULATOR_H
 
 #include <stdbool.h>
-#include "GenMsg.h"
+#include "pkt.h"
 
 
 #define F_S 20

@@ -16,41 +16,44 @@ const static char STX = 0x02;
 const static char ETX = 0x03;
 const static char ETB = 0x17;
 const static char DEL = 0X7F;
+#define NAK_TAG 0x15
 
 const static int prekey_len = 16;
-const static int head_len = 4;
-const static int SOH_len = 1;
-const static int mode_len = 1;
-const static int arn_len = 7;
-const static int ack_len = 1;
-const static int label_len = 2;
-const static int udbi_len = 1;
-const static int STX_len = 1;
+#define PREFIX_LEN  4
+#define SOH_LEN  1
+#define MODE_LEN 1
+#define ARN_LEN  7
+#define ACK_LEN  1
+#define LABEL_LEN 2
+#define BI_LEN  1
+#define STX_LEN  1
 const static int serial_len = 4;
 const static int flightid_len = 6;
 const static int SUFFIX_len = 1;
 const static int BCS_len = 2;
 const static int BCSSUF_len = 1;
+#define TEXT_MAX_LEN 220
+#define CRC_LEN 2
 
 //const static int forelen = prekey_len + head_len+ SOH_len + mode_len + label_len + arn_len + udbi_len+ack_len+STX_len;
-const static int up_forelen = head_len + SOH_len + mode_len + label_len + arn_len + udbi_len + ack_len + STX_len;
+const static int up_forelen = PREFIX_LEN + SOH_LEN + MODE_LEN + ARN_LEN + ACK_LEN + LABEL_LEN + BI_LEN  + STX_LEN;
 const static int down_forelen =
-        head_len + SOH_len + mode_len + label_len + arn_len + udbi_len + ack_len + STX_len + serial_len + flightid_len;
+        PREFIX_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + serial_len + flightid_len;
 const static int taillen = SUFFIX_len + BCS_len + BCSSUF_len;
 
 typedef struct message_format {
-    int isUp;
+    int is_UP;
     uint8_t mode;
-    uint8_t *arn;
+    uint8_t arn[ARN_LEN + 1];
     uint8_t ack;
-    uint8_t *label;
-    uint8_t udbi;
+    uint8_t label[LABEL_LEN + 1];
+    uint8_t bi;
     uint8_t *serial;
     uint8_t *flight;
-    uint8_t *text;
-    uint8_t *crc;
+    uint8_t text[TEXT_MAX_LEN + 1];
+    uint8_t crc[CRC_LEN];
     uint8_t suffix;
-    int text_len;
+    size_t text_len;
     uint8_t *lsb_with_crc_msg;
     int total_length;
     int complex_length;
@@ -101,7 +104,7 @@ void parity(uint8_t *dst, const uint8_t *src, int msg_len) ;
 
 uint8_t parityCheck(uint8_t value);
 
-void getCRC(uint8_t *lsbMsg, uint8_t *crc_res, int msg_len);
+void get_CRC(uint8_t *lsbMsg, uint8_t *crc_res, int msg_len);
 
 uint8_t toInt(const uint8_t *src, int len) ;
 

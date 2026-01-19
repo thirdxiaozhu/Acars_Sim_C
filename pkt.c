@@ -11,51 +11,47 @@
 #define appendChar(dst, src) *(dst) = src;
 
 void merge_elements(message_format *u) {
-    int forelen;
-    if (u->isUp == 0) {
-        forelen = up_forelen;
-    } else {
-        forelen = down_forelen;
-    }
 
-    u->total_length = (prekey_len + forelen + u->text_len + taillen) * 8;
+    const int pre_len = u->is_UP == 0 ? up_forelen : down_forelen;
+
+    u->total_length = (prekey_len + pre_len + u->text_len + taillen) * 8;
     u->lsb_with_crc_msg = (uint8_t *) malloc(sizeof(uint8_t) * u->total_length);
-    uint8_t * rawMsg = (uint8_t *) malloc(sizeof(uint8_t) * (forelen + u->text_len + 1));
-    uint8_t *parityMsg = (uint8_t *) malloc(sizeof(uint8_t) * (forelen + u->text_len + taillen));
+    uint8_t * rawMsg = (uint8_t *) malloc(sizeof(uint8_t) * (pre_len + u->text_len + 1));
+    uint8_t *parityMsg = (uint8_t *) malloc(sizeof(uint8_t) * (pre_len + u->text_len + taillen));
 
     int duplen = 0;
     char pro_suf = STX;
     bool isACK;
-    if(u->ack != 0x15){
+    if(u->ack != NAK_TAG){
         isACK = true;
         u->label[0] = 0x5F;
         u->label[1] = 0x7F;
         u->text[0] = 0x00;
         u->text_len = 0;
-        //u->crc[0] = 0x22;
-        //u->crc[1] = 0x33;
+        // u->crc[0] = 0x22;
+        // u->crc[1] = 0x33;
 
     }
 
-    memcpy(rawMsg + duplen, head, head_len);
-    duplen += head_len;
+    memcpy(rawMsg + duplen, head, PREFIX_LEN);
+    duplen += PREFIX_LEN;
     appendChar(rawMsg + duplen, SOH);
-    duplen += SOH_len;
+    duplen += SOH_LEN;
     appendChar(rawMsg + duplen, u->mode);
-    duplen += mode_len;
-    memcpy(rawMsg + duplen, u->arn, arn_len);
-    duplen += arn_len;
+    duplen += MODE_LEN;
+    memcpy(rawMsg + duplen, u->arn, ARN_LEN);
+    duplen += ARN_LEN;
     appendChar(rawMsg + duplen, u->ack);
-    duplen += ack_len;
-    memcpy(rawMsg + duplen, u->label, label_len);
-    duplen += label_len;
-    appendChar(rawMsg + duplen, u->udbi);
-    duplen += udbi_len;
+    duplen += ACK_LEN;
+    memcpy(rawMsg + duplen, u->label, LABEL_LEN);
+    duplen += LABEL_LEN;
+    appendChar(rawMsg + duplen, u->bi);
+    duplen += BI_LEN;
 
     if(isACK == false){
         appendChar(rawMsg + duplen, pro_suf);
-        duplen += STX_len;
-        if (u->isUp == 1) {
+        duplen += STX_LEN;
+        if (u->is_UP == 1) {
             memcpy(rawMsg + duplen, u->serial, serial_len);
             duplen += serial_len;
             memcpy(rawMsg + duplen, u->flight, flightid_len);
@@ -74,12 +70,12 @@ void merge_elements(message_format *u) {
 
         parity(parityMsg, rawMsg, duplen);
 
-        getCRC(parityMsg + 5, u->crc, duplen - 5);
+        get_CRC(parityMsg + 5, u->crc, duplen - 5);
 
     }else{
-        if(u->isUp == 1){
+        if(u->is_UP == 1){
             appendChar(rawMsg + duplen, pro_suf);
-            duplen += STX_len;
+            duplen += STX_LEN;
             memcpy(rawMsg + duplen, u->serial, serial_len);
             duplen += serial_len;
             memcpy(rawMsg + duplen, u->flight, flightid_len);
@@ -89,7 +85,7 @@ void merge_elements(message_format *u) {
         duplen += SUFFIX_len;
         parity(parityMsg, rawMsg, duplen);
     }
-    unsignedMemcpy(parityMsg + duplen, u->crc, 2);
+    unsignedMemcpy(parityMsg + duplen, u->crc, CRC_LEN);
     duplen += BCS_len;
 
     appendChar(parityMsg + duplen, DEL);
@@ -123,7 +119,7 @@ uint8_t parityCheck(uint8_t value) {
     return res;
 }
 
-void getCRC(uint8_t *lsbMsg, uint8_t *crc_res, int msg_len) {
+void get_CRC(uint8_t *lsbMsg, uint8_t *crc_res, int msg_len) {
     uint8_t *crc16_string = (uint8_t *) malloc(sizeof(uint8_t) * 16);
     uint8_t *crc_1 = (uint8_t *) malloc(sizeof(uint8_t) * 8);
     uint8_t *crc_2 = (uint8_t *) malloc(sizeof(uint8_t) * 8);

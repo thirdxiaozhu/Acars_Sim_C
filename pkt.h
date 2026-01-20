@@ -7,10 +7,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "acarstrans.h"
 
 const static char prekey[16] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
                                 0x01, 0x01};
-const static char head[4] = {0x2b, 0x2a, 0x16, 0x16};
+const static uint8_t head[4] = {0x2b, 0x2a, 0x16, 0x16};
 const static char SOH = 0x01;
 const static char STX = 0x02;
 const static char ETX = 0x03;
@@ -18,7 +19,7 @@ const static char ETB = 0x17;
 const static char DEL = 0X7F;
 #define NAK_TAG 0x15
 
-const static int prekey_len = 16;
+#define PREKEY_LEN 16
 #define PREFIX_LEN  4
 #define SOH_LEN  1
 #define MODE_LEN 1
@@ -27,22 +28,21 @@ const static int prekey_len = 16;
 #define LABEL_LEN 2
 #define BI_LEN  1
 #define STX_LEN  1
-const static int serial_len = 4;
-const static int flightid_len = 6;
-const static int SUFFIX_len = 1;
-const static int BCS_len = 2;
-const static int BCSSUF_len = 1;
+#define SERIAL_LEN  4
+#define FLIGHTID_LEN  6
+#define SUFFIX_LEN 1
+#define BCS_LEN 2
+#define BCSSUF_LEN 1
 #define TEXT_MAX_LEN 220
 #define CRC_LEN 2
 
 //const static int forelen = prekey_len + head_len+ SOH_len + mode_len + label_len + arn_len + udbi_len+ack_len+STX_len;
-const static int up_forelen = PREFIX_LEN + SOH_LEN + MODE_LEN + ARN_LEN + ACK_LEN + LABEL_LEN + BI_LEN  + STX_LEN;
-const static int down_forelen =
-        PREFIX_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + serial_len + flightid_len;
-const static int taillen = SUFFIX_len + BCS_len + BCSSUF_len;
+#define UPLINK_PRELEN (PREFIX_LEN + SOH_LEN + MODE_LEN + ARN_LEN + ACK_LEN + LABEL_LEN + BI_LEN + STX_LEN)
+#define DOWNLINK_PRELEN (PREFIX_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + SERIAL_LEN + FLIGHTID_LEN)
+#define TAIL_LEN  (SUFFIX_LEN + BCS_LEN + BCSSUF_LEN)
 
 typedef struct message_format {
-    int is_UP;
+    bool is_uplink;
     uint8_t mode;
     uint8_t arn[ARN_LEN + 1];
     uint8_t ack;
@@ -55,7 +55,7 @@ typedef struct message_format {
     uint8_t suffix;
     size_t text_len;
     uint8_t *lsb_with_crc_msg;
-    int total_length;
+    size_t total_bits;
     int complex_length;
     float * cpfsk;
     char *complex_i8; //signed char  <--> __int_8
@@ -104,14 +104,10 @@ void parity(uint8_t *dst, const uint8_t *src, int msg_len) ;
 
 uint8_t parityCheck(uint8_t value);
 
-void get_CRC(uint8_t *lsbMsg, uint8_t *crc_res, int msg_len);
-
-uint8_t toInt(const uint8_t *src, int len) ;
-
-void unsignedMemcpy(uint8_t *dst, uint8_t *src, int length);
+void get_crc(const uint8_t *lsb_msg, uint8_t *crc_res, int msg_len);
 
 void lsb(uint8_t *dst, const uint8_t *src, int len);
 
-void itoa(int num, uint8_t *str, int bits, bool islsb);
+at_error num2bits(int num, uint8_t *str, int bits, bool is_lsb);
 
 #endif //ACARS_SIM_C_GENMSG_H

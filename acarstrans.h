@@ -16,5 +16,7 @@ typedef enum {
     AT_ERROR_NULL,
 } at_error;
 
+#define BITS_PER_BYTE 8
+
 
 #endif //ACARS_SIM_C_ACARSTRANS_H

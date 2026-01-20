@@ -15,6 +15,7 @@
 #define FILE 1001
 #define LIGHT_GREEN  "\033[1;32m"
 #define LIGHT_RED    "\033[1;31m"
+#define RESET_COLOR "\033[0m"
 #define SUCCESS 0;
 #define ERROR 1;
 
@@ -110,21 +111,21 @@ at_error get_input(const char* prompt, const size_t max_size, uint8_t *output) {
 int generate_pkt(struct message_format * mf) {
     while (true) {
         uint8_t isUplink[1] = {0};
-        get_input(LIGHT_GREEN"Is Uplink?  [Y/N]: ", 1, isUplink);
+        get_input(LIGHT_GREEN"Is Uplink?  [Y/N]: "RESET_COLOR, 1, isUplink);
 
         if (regex_char("[YyNn]", *isUplink) == AT_OK) {
-            mf->is_UP = (*isUplink == 'Y' || *isUplink == 'y') ? 0 : 1;
+            mf->is_uplink = (*isUplink == 'Y' || *isUplink == 'y') ? true : false;
             break;
         }
     }
     while (true) {
         uint8_t mode[MODE_LEN] = {0};
-        get_input(LIGHT_GREEN"Mode: ", MODE_LEN, mode);
+        get_input(LIGHT_GREEN"Mode: "RESET_COLOR, MODE_LEN, mode);
         if (*mode == '2') {
             mf->mode = *mode;
             break;
         }
-        printf(LIGHT_RED"Only support Mode A, please input '2' !\n");
+        printf(LIGHT_RED"Only support Mode A, please input '2' !\n"RESET_COLOR);
     }
     while (true) {
         uint8_t temp_arn[ARN_LEN] = {0};
@@ -132,50 +133,50 @@ int generate_pkt(struct message_format * mf) {
             *(mf->arn + r) = '.';
         }
 
-        get_input(LIGHT_GREEN"Address: ", ARN_LEN, temp_arn);
+        get_input(LIGHT_GREEN"Address: "RESET_COLOR, ARN_LEN, temp_arn);
 
         if (!regex_string("[A-Z0-9.-]", temp_arn)) {
             memcpy(mf->arn + ARN_LEN - strlen(temp_arn), temp_arn, strlen(temp_arn));
             break;
         }
-        printf(LIGHT_RED"Valid characters are {A-Z} {0-9} {.} and {-} !\n");
+        printf(LIGHT_RED"Valid characters are {A-Z} {0-9} {.} and {-} !\n"RESET_COLOR);
     }
     while (true) {
         uint8_t ack[ACK_LEN] = {0};
-        get_input(LIGHT_GREEN"ACK (Enter for NAK): ", ACK_LEN, ack);
+        get_input(LIGHT_GREEN"ACK (Enter for NAK): "RESET_COLOR, ACK_LEN, ack);
 
         if (!strlen(ack)) {
             mf->ack = NAK_TAG;
             break;
         }
 
-        if (mf->is_UP == 0) {
+        if (mf->is_uplink == true) {
             if (!regex_char("[0-9]", *ack)) {
                 mf->ack = *ack;
                 break;
             }
-            printf(LIGHT_RED"Uplink technical acknowledgement must be a character between 0 to 9 or a NAK !\n");
+            printf(LIGHT_RED"Uplink technical acknowledgement must be a character between 0 to 9 or a NAK !\n"RESET_COLOR);
         } else {
             if (!regex_char("[A-Za-z]", *ack)) {
                 mf->ack = *ack;
                 break;
             }
-            printf(LIGHT_RED"Downlink technical acknowledgement must be a character between A to Z / a to z / a NAK !\n");
+            printf(LIGHT_RED"Downlink technical acknowledgement must be a character between A to Z / a to z / a NAK !\n"RESET_COLOR);
         }
     }
     while (true) {
-        get_input(LIGHT_GREEN"Label: ", LABEL_LEN, mf->label);
+        get_input(LIGHT_GREEN"Label: "RESET_COLOR, LABEL_LEN, mf->label);
 
         if (!regex_string("[A-Z0-9]{2}", mf->label)) {
             break;
         }
-        printf(LIGHT_RED"Valid characters are {A-Z} and {0-9} and the length is 2!\n");
+        printf(LIGHT_RED"Valid characters are {A-Z} and {0-9} and the length is 2!\n"RESET_COLOR);
     }
 
     while (true) {
         uint8_t bi[BI_LEN] = {0};
-        if (mf->is_UP == 0) {
-            get_input(LIGHT_GREEN"UBI (Enter for NAK): ", BI_LEN, bi);
+        if (mf->is_uplink == true) {
+            get_input(LIGHT_GREEN"UBI (Enter for NAK): "RESET_COLOR, BI_LEN, bi);
             if (!strlen(bi)) {
                 mf->bi = NAK_TAG;
                 break;
@@ -184,8 +185,8 @@ int generate_pkt(struct message_format * mf) {
                 mf->bi = *bi;
                 break;
             }
-            printf(LIGHT_RED"Uplink technical acknowledgement must be a character between A to Z / a to z / a NAK !\n");
-        } else if (mf->is_UP == 1) {
+            printf(LIGHT_RED"Uplink technical acknowledgement must be a character between A to Z / a to z / a NAK !\n"RESET_COLOR);
+        } else if (mf->is_uplink == false) {
             get_input(LIGHT_GREEN"DBI: ", BI_LEN, bi);
             if (!strlen(bi)) {
                 mf->bi = NAK_TAG;
@@ -195,31 +196,31 @@ int generate_pkt(struct message_format * mf) {
                 mf->bi = *bi;
                 break;
             }
-            printf(LIGHT_RED"Downlink technical acknowledgement must be a character between 0-9 or a NAK !\n");
+            printf(LIGHT_RED"Downlink technical acknowledgement must be a character between 0-9 or a NAK !\n"RESET_COLOR);
         }
     }
     while (true) {
-        get_input(LIGHT_GREEN"TEXT: ", TEXT_MAX_LEN, mf->text);
+        get_input(LIGHT_GREEN"TEXT: "RESET_COLOR, TEXT_MAX_LEN, mf->text);
         mf->text_len = strlen(mf->text);
         break;
     }
-    if (mf->is_UP == 1) {
+    if (mf->is_uplink == false) {
         while (true) {
-            mf->flight = (uint8_t *) malloc(sizeof(uint8_t) * flightid_len);
-            printf("Flight ID :");
+            mf->flight = (uint8_t *) malloc(sizeof(uint8_t) * FLIGHTID_LEN);
+            printf("Flight ID :"RESET_COLOR);
             scanf("%6s", mf->flight);
             if (!regex_string("[A-Z0-9]{6}", mf->flight)) {
                 break;
             } else {
-                printf(LIGHT_RED"The Length of flight id must be 6 and only {A-Z}/{0-9} are avilable!\n");
+                printf(LIGHT_RED"The Length of flight id must be 6 and only {A-Z}/{0-9} are avilable!\n"RESET_COLOR);
             }
         }
         mf->serial = (uint8_t *) malloc(sizeof(uint8_t) * 4);
         uint8_t serial[4] = "M01A";
-        memcpy(mf->serial, serial, serial_len);
+        memcpy(mf->serial, serial, SERIAL_LEN);
     }
 
-    mf->suffix = 0x03;
+    mf->suffix = ETX;
 
     mf->complex_i8 = (char* ) malloc(sizeof (char ) * BAUD * F_S * F_S_2 * RESAMPLE*2);
 }

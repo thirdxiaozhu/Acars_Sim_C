@@ -22,7 +22,7 @@ const float am_b[] = {0.00013651, 0.00027302, 0.00013651};
 const float am_a[] = {1.0, -1.96668139, 0.96722743};
 
 void modulate(message_format *mf) {
-    mf->cpfsk =  (float *) malloc(sizeof(float) * mf->total_length * F_S);
+    mf->cpfsk =  (float *) malloc(sizeof(float) * mf->total_bits * F_S);
     float *cpfsk = mf->cpfsk;
     MSK(mf, cpfsk);
     AM(mf, cpfsk);
@@ -31,7 +31,7 @@ void modulate(message_format *mf) {
 }
 
 void MSK(struct message_format *mf, float *cpfsk) {
-    int length = mf->total_length;
+    int length = mf->total_bits;
     float *ip = (float *) malloc(sizeof(float) * length);
     float *fmR = (float *) malloc(sizeof(float) * length * F_S);
     float *tsR = (float *) malloc(sizeof(float) * length * F_S);
@@ -54,7 +54,7 @@ void MSK(struct message_format *mf, float *cpfsk) {
 }
 
 void AM(struct message_format *mf, float *cpfsk) {
-    int valid_length = mf->total_length * F_S * F_S_2;
+    int valid_length = mf->total_bits * F_S * F_S_2;
     int total_length = BAUD * F_S * F_S_2;
     int valid_com_length = valid_length * RESAMPLE;
     mf->complex_length = total_length * RESAMPLE;
@@ -68,7 +68,7 @@ void AM(struct message_format *mf, float *cpfsk) {
     float *output_i = (float *) malloc(sizeof(float) * valid_com_length);
     //mf->complex_i8 = (char *) malloc(sizeof(char) * mf->complex_length * 2);
 
-    getCpfskR(cpfskR, cpfsk, mf->total_length * F_S);
+    getCpfskR(cpfskR, cpfsk, mf->total_bits * F_S);
     getT(t, cpfskR, valid_length);
     getAM(am, cpfskR, t, valid_length);
     getCfAm(cf_am, am, valid_length, total_length);
@@ -114,7 +114,7 @@ void AM(struct message_format *mf, float *cpfsk) {
 
 void diff_code(struct message_format *mf, float *diff) {
     *diff = 1.0;
-    for (int i = 1; i < mf->total_length; i++) {
+    for (int i = 1; i < mf->total_bits; i++) {
         int last_bit = *(mf->lsb_with_crc_msg + i - 1);
         if (*(mf->lsb_with_crc_msg + i) == last_bit)
             *(diff + i) = 1.0;

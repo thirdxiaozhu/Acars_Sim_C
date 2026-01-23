@@ -12,11 +12,11 @@
 
 typedef struct hackrf_devs {
     bool is_repeat;
-    char * serial_number;
-    char * path;
+    char *serial_number;
+    char *path;
     uint32_t vga_p;
     int64_t freq_p;
-    char * data;
+    char *data;
 }hackrf_devs;
 
 int transmit(const hackrf_devs *);

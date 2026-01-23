@@ -206,23 +206,16 @@ int generate_pkt(struct message_format * mf) {
     }
     if (mf->is_uplink == false) {
         while (true) {
-            mf->flight = (uint8_t *) malloc(sizeof(uint8_t) * FLIGHTID_LEN);
-            printf("Flight ID :"RESET_COLOR);
-            scanf("%6s", mf->flight);
+            get_input(LIGHT_GREEN"Flight ID: "RESET_COLOR, FLIGHTID_LEN, mf->flight);
             if (!regex_string("[A-Z0-9]{6}", mf->flight)) {
                 break;
-            } else {
-                printf(LIGHT_RED"The Length of flight id must be 6 and only {A-Z}/{0-9} are avilable!\n"RESET_COLOR);
             }
+            printf(LIGHT_RED"The Length of flight id must be 6 and only {A-Z}/{0-9} are avilable!\n"RESET_COLOR);
         }
-        mf->serial = (uint8_t *) malloc(sizeof(uint8_t) * 4);
-        uint8_t serial[4] = "M01A";
-        memcpy(mf->serial, serial, SERIAL_LEN);
+        memcpy(mf->serial, "M01A", SERIAL_LEN);
     }
 
     mf->suffix = ETX;
-
-    mf->complex_i8 = (char* ) malloc(sizeof (char ) * BAUD * F_S * F_S_2 * RESAMPLE*2);
 }
 
 void show_version() {

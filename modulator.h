@@ -9,14 +9,6 @@
 #include "pkt.h"
 
 
-#define F_S 20
-#define Ac  64.0
-#define F_S_2  2
-#define BAUD 2400
-#define PI 3.1415926
-#define EPSILON 0.000001
-#define RESAMPLE 12
-
 //extern "C" void modulatorTest();
 //extern "C" void modulate(message_format *);
 void modulate(struct message_format *);

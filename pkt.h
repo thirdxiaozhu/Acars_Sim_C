@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "acarstrans.h"
+#include "util.h"
 
 const static char prekey[16] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
                                 0x01, 0x01};
@@ -44,8 +45,8 @@ typedef struct message_format {
     uint8_t ack;
     uint8_t label[LABEL_LEN + 1];
     uint8_t bi;
-    uint8_t *serial;
-    uint8_t *flight;
+    uint8_t serial[SERIAL_LEN + 1];
+    uint8_t flight[FLIGHTID_LEN + 1];
     uint8_t text[TEXT_MAX_LEN + 1];
     uint8_t crc[CRC_LEN];
     uint8_t suffix;
@@ -54,7 +55,7 @@ typedef struct message_format {
     size_t total_bits;
     int complex_length;
     float * cpfsk;
-    char *complex_i8; //signed char  <--> __int_8
+    char complex_i8[BAUD * F_S * F_S_2 * RESAMPLE*2]; //signed char  <--> __int_8
 } message_format;
 
 

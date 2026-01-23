@@ -14,13 +14,24 @@
     *(head+offset) = src;\
     offset++;
 
+#define append_char_parity(head, offset, src) \
+    *(head+offset) = parity_char(src);\
+    offset++;
+
 #define append_str(head, offset, src, n) \
     memcpy(head+offset, src, n);\
     offset += n;
 
+#define append_str_parity(head, offset, src, n){\
+    uint8_t tmp[256] = {0};\
+    parity_str(tmp, src, n);\
+    memcpy(head+offset, tmp, n);\
+    offset += n;\
+    } \
 
-#define UPLINK_PRELEN (PREFIX_LEN + SOH_LEN + MODE_LEN + ARN_LEN + ACK_LEN + LABEL_LEN + BI_LEN + STX_LEN)
-#define DOWNLINK_PRELEN (PREFIX_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + SERIAL_LEN + FLIGHTID_LEN)
+
+#define UPLINK_PRELEN (PREKEY_LEN + SYNC_LEN + SOH_LEN + MODE_LEN + ARN_LEN + ACK_LEN + LABEL_LEN + BI_LEN + STX_LEN)
+#define DOWNLINK_PRELEN (PREKEY_LEN + SYNC_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + SERIAL_LEN + FLIGHTID_LEN)
 #define TAIL_LEN  (SUFFIX_LEN + BCS_LEN + BCSSUF_LEN)
 
 static unsigned short crc16_ccitt_table[256] =
@@ -73,7 +84,7 @@ void merge_elements(message_format *u) {
 
     const int pre_len = u->is_uplink == true ? UPLINK_PRELEN : DOWNLINK_PRELEN;
 
-    u->total_bits = (PREKEY_LEN + pre_len + u->text_len + TAIL_LEN) * 8;
+    u->total_bits = (pre_len + u->text_len + TAIL_LEN) * 8;
     u->lsb_with_crc_msg = (uint8_t *) malloc(sizeof(uint8_t) * u->total_bits);
     uint8_t *rawMsg = malloc(sizeof(uint8_t) * (pre_len + u->text_len + 1));
     uint8_t *parityMsg = malloc(sizeof(uint8_t) * (pre_len + u->text_len + TAIL_LEN));
@@ -90,7 +101,9 @@ void merge_elements(message_format *u) {
         u->crc[1] = 0x33;
     }
 
-    append_str(rawMsg, duplen, head, PREFIX_LEN);
+
+    // append_str(rawMsg, duplen, prekey, PREKEY_LEN);
+    append_str(rawMsg, duplen, sync_seq, SYNC_LEN);
     append_char(rawMsg, duplen, SOH);
     append_char(rawMsg, duplen, u->mode);
     append_str(rawMsg, duplen, u->arn, ARN_LEN);
@@ -107,15 +120,14 @@ void merge_elements(message_format *u) {
         append_str(rawMsg, duplen, u->text, u->text_len);
         append_char(rawMsg, duplen, u->suffix);
 
-        fprintf(stderr, "The message you have sent is :\n");
-        for(int i = 0; i < duplen; i++){
-            fprintf(stderr, "%c", rawMsg[i]);
-        }
-        fprintf(stderr, "\n");
+        // fprintf(stderr, "The message you have sent is :\n");
+        // for(int i = 0; i < duplen; i++){
+        //     fprintf(stderr, "%c", rawMsg[i]);
+        // }
+        // fprintf(stderr, "\n");
 
         parity_str(parityMsg, rawMsg, duplen);
-
-        get_crc(parityMsg + PREFIX_LEN + SOH_LEN, u->crc, duplen - (PREFIX_LEN + SOH_LEN));
+        get_crc(parityMsg + SYNC_LEN + SOH_LEN, u->crc, duplen - (SYNC_LEN + SOH_LEN));
     }else{
         if(u->is_uplink == false){
             append_char(rawMsg, duplen, STX);
@@ -126,8 +138,7 @@ void merge_elements(message_format *u) {
         parity_str(parityMsg, rawMsg, duplen);
     }
     append_str(parityMsg, duplen, u->crc, CRC_LEN);
-
-    append_char(parityMsg, duplen, DEL);
+    append_char_parity(parityMsg, duplen, DEL);
 
     lsb(u->lsb_with_crc_msg, parityMsg, u->total_bits);
     free(parityMsg);

@@ -236,6 +236,10 @@ void usage() {
 };
 
 int main(int argc, char **argv) {
+    uint8_t ss[2] = {0xCB, 0x37};
+    uint8_t rr[2] = {0};
+    get_crc(ss, rr, 2);
+
     int c;
     int mode = MANUAL;
     char *freq_c = "131450000";

@@ -263,7 +263,7 @@ void showEssence(){
     fprintf(stderr,"\n");
 }
 
-int transmit(const hackrf_devs * hd){
+int transmit(const hackrf_args_t * hd){
     if(initHackRF(hd->is_repeat, hd->serial_number, hd->path, hd->vga_p, hd->freq_p, hd->data) != EXIT_SUCCESS){
         fprintf(stderr, "Init HackRF Failed!");
         return EXIT_FAILURE;

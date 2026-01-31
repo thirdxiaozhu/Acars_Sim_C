@@ -9,17 +9,16 @@
 #include <stdbool.h>
 #include "pkt.h"
 
-
-typedef struct hackrf_devs {
+typedef struct hackrf_devs_s {
     bool is_repeat;
     char *serial_number;
     char *path;
     uint32_t vga_p;
     int64_t freq_p;
     char *data;
-}hackrf_devs;
+}hackrf_args_t;
 
-int transmit(const hackrf_devs *);
+int transmit(const hackrf_args_t *);
 
 int initHackRF(bool repeat, const char *, const char *, int, int64_t, const char * data);
 

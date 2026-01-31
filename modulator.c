@@ -89,44 +89,68 @@ void AM(message_format *mf, const float *cpfsk) {
     getAM(am, cpfskR, t, valid_length);
     getCfAm(cf_am, am, valid_length, total_length);
 
-    free(cpfskR);
-    free(t);
-    free(am);
-
     filter(am_b, am_a, cf_am, input_r, total_length, 3);
     for (int i = 0; i < total_length; i++) {
         *(input_i + i) = 0.0;
     }
 
-    free(cf_am);
-
     resample(input_r, input_i, total_length, RESAMPLE, 1, output_r, output_i, valid_com_length);
-    int i = 0;
-    for (; i < valid_com_length; i++) {
+
+    for (int i = 0; i < valid_com_length; i++) {
         *(mf->complex_i8 + i * 2) = (int8_t) *(output_r + i);
         *(mf->complex_i8 + i * 2 + 1) = (int8_t) *(output_i + i);
     }
 
     const int remain_len = (mf->complex_length - valid_com_length) * 2;
     int *zero_pendding = (int *) calloc (remain_len, sizeof (int));
-    memcpy(mf->complex_i8 + (i * 2), zero_pendding, remain_len);
+    memcpy(mf->complex_i8 + (valid_com_length * 2), zero_pendding, remain_len);
+
+
+    FILE *_outfile;
+    {
+        if ((_outfile = fopen("complex_i8.txt", "wt+")) == NULL) {
+            puts("Open IQ file failed!");
+            exit(0);
+        }
+
+        for (int i = 0; i < mf->complex_length * 2; i++) {
+            fputc(*(mf->complex_i8 + i), _outfile);
+        }
+        fclose(_outfile);
+    }
+    {
+        if ((_outfile = fopen("cfam.txt", "wt+")) == NULL) {
+            puts("Open IQ file failed!");
+            exit(0);
+        }
+
+        for (int i = 0; i < valid_length; i++) {
+            fputc(cf_am[i], _outfile);
+        }
+        fclose(_outfile);
+    }
+    {
+        if ((_outfile = fopen("inputr.txt", "wt+")) == NULL) {
+            puts("Open IQ file failed!");
+            exit(0);
+        }
+
+        for (int i = 0; i < valid_length; i++) {
+            fputc(input_r[i], _outfile);
+        }
+        fclose(_outfile);
+    }
 
     free(input_r);
     free(input_i);
     free(output_r);
     free(output_i);
     free(zero_pendding);
+    free(cpfskR);
+    free(t);
+    free(am);
+    free(cf_am);
 
-    FILE *_outfile;
-    if ((_outfile = fopen("test.txt", "wt+")) == NULL) {
-        puts("Open IQ file failed!");
-        exit(0);
-    }
-
-    for (int i = 0; i < mf->complex_length * 2; i++) {
-        fputc(*(mf->complex_i8 + i), _outfile);
-    }
-    fclose(_outfile);
 }
 
 void diff_code(message_format *mf, float *diff) {
@@ -176,7 +200,6 @@ void filter(const float *b, const float *a, const float *x, float *y, int length
             if (i > l)
                 *(y + i) = *(y + i) - (*(a + l + 1)) * (*(y + i - l - 1));
     }
-
 }
 
 void getThetaR(const float *filter, float *thetaR, int times) {

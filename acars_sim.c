@@ -19,7 +19,7 @@
 #define SUCCESS 0;
 #define ERROR 1;
 
-hackrf_devs *hd = NULL;
+hackrf_args_t *hd = NULL;
 
 int tx_vga;
 char *endptr = NULL;
@@ -229,31 +229,32 @@ void usage() {
     printf("\t-h # this help\n");
     printf("\t-v show software version.\n");
     printf("\t-d serial_number # Serial number of desired HackRF.\n");
-    printf("\t-t <filename> # Transmit from data file (use '-' for manually input).\n");
+    printf("\t-F <filename> # Transmit from data file (use '-' for manually input).\n");
     printf("\t-f freq_hz # Frequency in Hz [127.0MHz to 139.0MHz] (default is 131450000Hz / 131.450Hz).\n");
     printf("\t-x gain_db # TX VGA (IF) gain, 0-47dB, 1dB steps (default is 20).\n");
     printf("\t[-R] # Repeat TX mode (default is off).\n");
+    printf("\t[-H] # Using HackRF (default)\n");
+    printf("\t[-U] # Using USRP\n");
 };
 
 int main(int argc, char **argv) {
-    // uint8_t ss[2] = {0xCB, 0x37};
-    // uint8_t rr[2] = {0};
-    // get_crc(ss, rr, 2);
-
     int c;
     int mode = MANUAL;
     char *freq_c = "131450000";
     char *vga_c = "20";
     message_format mf = {0};
-    hd = (struct hackrf_devs *) malloc(sizeof (struct hackrf_devs));
-    // mf = (struct message_format *) malloc(sizeof(struct message_format));
+    hd = (hackrf_args_t *) malloc(sizeof (hackrf_args_t));
 
-    while ((c = getopt(argc, argv, "d:f:x:t:Rvh")) != EOF) {
+    while ((c = getopt(argc, argv, "d:f:x:F:RvhHU")) != EOF) {
         switch (c) {
+            case 'H':
+                break;
+            case 'U':
+                break;
             case 'd':
                 hd->serial_number = optarg;
                 break;
-            case 't':
+            case 'F':
                 hd->path = optarg;
                 if(strcmp(hd->path, "-") != 0){
                     mode = FILE;

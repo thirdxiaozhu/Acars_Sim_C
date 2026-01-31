@@ -21,22 +21,36 @@ const float msk_a[] = {1.0, -1.0};
 const float am_b[] = {0.00013651, 0.00027302, 0.00013651};
 const float am_a[] = {1.0, -1.96668139, 0.96722743};
 
-void modulate(message_format *mf) {
+at_error MSK(struct message_format *, float *);
+
+at_error modulate(message_format *mf) {
     mf->cpfsk =  (float *) malloc(sizeof(float) * mf->total_bits * F_S);
     float *cpfsk = mf->cpfsk;
     MSK(mf, cpfsk);
     AM(mf, cpfsk);
     free(cpfsk);
 
+    return AT_OK;
 }
 
-void MSK(struct message_format *mf, float *cpfsk) {
-    int length = mf->total_bits;
+at_error MSK(struct message_format *mf, float *cpfsk) {
+    const size_t length = mf->total_bits;
     float *ip = (float *) malloc(sizeof(float) * length);
     float *fmR = (float *) malloc(sizeof(float) * length * F_S);
     float *tsR = (float *) malloc(sizeof(float) * length * F_S);
     float *fil = (float *) malloc(sizeof(float) * length);
     float *thetaR = (float *) malloc(sizeof(float) * length * F_S);
+
+    if (!ip || !fmR || !tsR || !fil || !thetaR) {
+        if (ip)     free(ip);
+        if (fmR)    free(fmR);
+        if (tsR)    free(tsR);
+        if (fil)    free(fil);
+        if (thetaR) free(thetaR);
+        fprintf(stderr, "Invalid init");
+        return AT_ERROR_NULL;
+    }
+
     diff_code(mf, ip);
     getIp(ip, length);
     getFmR(ip, fmR, length);
@@ -51,12 +65,14 @@ void MSK(struct message_format *mf, float *cpfsk) {
     free(tsR);
     free(fil);
     free(thetaR);
+
+    return AT_OK;
 }
 
-void AM(struct message_format *mf, float *cpfsk) {
-    int valid_length = mf->total_bits * F_S * F_S_2;
-    int total_length = BAUD * F_S * F_S_2;
-    int valid_com_length = valid_length * RESAMPLE;
+void AM(message_format *mf, const float *cpfsk) {
+    const int valid_length = mf->total_bits * F_S * F_S_2;
+    const int total_length = BAUD * F_S * F_S_2;
+    const int valid_com_length = valid_length * RESAMPLE;
     mf->complex_length = total_length * RESAMPLE;
     float *cpfskR = (float *) malloc(sizeof(float) * valid_length);
     float *t = (float *) malloc(sizeof(float) * valid_length);
@@ -91,14 +107,15 @@ void AM(struct message_format *mf, float *cpfsk) {
         *(mf->complex_i8 + i * 2 + 1) = (int8_t) *(output_i + i);
     }
 
-    int remainlen = (mf->complex_length - valid_com_length) * 2;
-    int * zeropendding = (int *) calloc (remainlen, sizeof (int));
-    memcpy(mf->complex_i8 + (i * 2), zeropendding, remainlen);
+    const int remain_len = (mf->complex_length - valid_com_length) * 2;
+    int *zero_pendding = (int *) calloc (remain_len, sizeof (int));
+    memcpy(mf->complex_i8 + (i * 2), zero_pendding, remain_len);
 
     free(input_r);
     free(input_i);
     free(output_r);
     free(output_i);
+    free(zero_pendding);
 
     FILE *_outfile;
     if ((_outfile = fopen("test.txt", "wt+")) == NULL) {
@@ -112,10 +129,10 @@ void AM(struct message_format *mf, float *cpfsk) {
     fclose(_outfile);
 }
 
-void diff_code(struct message_format *mf, float *diff) {
+void diff_code(message_format *mf, float *diff) {
     *diff = 1.0;
     for (int i = 1; i < mf->total_bits; i++) {
-        int last_bit = *(mf->lsb_with_crc_msg + i - 1);
+        const int last_bit = *(mf->lsb_with_crc_msg + i - 1);
         if (*(mf->lsb_with_crc_msg + i) == last_bit)
             *(diff + i) = 1.0;
         else
@@ -123,12 +140,12 @@ void diff_code(struct message_format *mf, float *diff) {
     }
 }
 
-void getIp(float *ip, int length) {
+void getIp(float *ip, const size_t length) {
     for (int i = 0; i < length; i++)
         *(ip + i) = *(ip + i) * 2.0 - 2.0;
 }
 
-void getFmR(const float *ip, float *fmR, int length) {
+void getFmR(const float *ip, float *fmR, const size_t length) {
     for (int i = 0; i < length; i++) {
         float temp = *(ip + i) / 4;
         for (int r = 0; r < F_S; r++)
@@ -136,13 +153,15 @@ void getFmR(const float *ip, float *fmR, int length) {
     }
 }
 
-void getTsR(float *tsR, int length) {
-    float *ts = (float *) malloc(sizeof(float) * F_S);
+void getTsR(float *tsR, const size_t length) {
+    float *ts = malloc(sizeof(float) * F_S);
     for (int i = 0; i < F_S; i++)
         *(ts + i) = 1.0 * i / F_S;
 
     for (int i = 0; i < length; i++)
         memcpy(tsR + i * F_S, ts, F_S * sizeof(float));
+
+    free(ts);
 }
 
 void filter(const float *b, const float *a, const float *x, float *y, int length, int b_len) {
@@ -959,34 +978,3 @@ int Kaiser (float * Wn_Kaiser,int L,float beta)//凯撒窗函数，默认beat值
 
 }
 
-void convert_sse2(const float *inbuf, int8_t *outbuf, const unsigned int count) {
-    const register __m128 mulme = _mm_set_ps(127.0f, 127.0f, 127.0f, 127.0f);
-    __m128 itmp1, itmp2, itmp3, itmp4;
-    __m128i otmp1, otmp2, otmp3, otmp4;
-
-    __m128i outshorts1, outshorts2;
-    __m128i outbytes;
-
-    for (unsigned int i = 0; i < count; i++) {
-
-        itmp1 = _mm_mul_ps(_mm_loadu_ps(&inbuf[i * 16 + 0]), mulme);
-        itmp2 = _mm_mul_ps(_mm_loadu_ps(&inbuf[i * 16 + 4]), mulme);
-        itmp3 = _mm_mul_ps(_mm_loadu_ps(&inbuf[i * 16 + 8]), mulme);
-        itmp4 = _mm_mul_ps(_mm_loadu_ps(&inbuf[i * 16 + 12]), mulme);
-
-        otmp1 = _mm_cvtps_epi32(itmp1);
-        otmp2 = _mm_cvtps_epi32(itmp2);
-        otmp3 = _mm_cvtps_epi32(itmp3);
-        otmp4 = _mm_cvtps_epi32(itmp4);
-
-        outshorts1 = _mm_packs_epi32(otmp1, otmp2);
-        outshorts2 = _mm_packs_epi32(otmp3, otmp4);
-
-        outbytes = _mm_packs_epi16(outshorts1, outshorts2);
-
-        _mm_storeu_si128((__m128i *) &outbuf[i * 16], outbytes);
-        //for(int t = 0; t < 16; t++){
-        //    outfile << outbuf[i*16+t];
-        //}
-    }
-}

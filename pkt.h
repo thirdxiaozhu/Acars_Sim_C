@@ -30,10 +30,10 @@ const static char DEL = 0X7F;
 #define BI_LEN  1
 #define STX_LEN  1
 #define SERIAL_LEN  4
-#define FLIGHTID_LEN  6
+#define FLIGHT_ID_LEN  6
 #define SUFFIX_LEN 1
 #define BCS_LEN 2
-#define BCSSUF_LEN 1
+#define BCS_SUF_LEN 1
 #define TEXT_MAX_LEN 220
 #define CRC_LEN 2
 
@@ -46,15 +46,16 @@ typedef struct message_format {
     uint8_t label[LABEL_LEN + 1];
     uint8_t bi;
     uint8_t serial[SERIAL_LEN + 1];
-    uint8_t flight[FLIGHTID_LEN + 1];
+    uint8_t flight[FLIGHT_ID_LEN + 1];
     uint8_t text[TEXT_MAX_LEN + 1];
     uint8_t crc[CRC_LEN];
     uint8_t suffix;
     size_t text_len;
-    uint8_t *lsb_with_crc_msg;
+    // uint8_t *lsb_with_crc_msg;
+    uint8_t lsb_with_crc_msg[MAX_BUFFER_LEN << 3];
     size_t total_bits;
     int complex_length;
-    float * cpfsk;
+    float *cpfsk;
     char complex_i8[BAUD * F_S * F_S_2 * RESAMPLE*2]; //signed char  <--> __int_8
 } message_format;
 

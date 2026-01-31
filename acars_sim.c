@@ -206,7 +206,7 @@ int generate_pkt(struct message_format * mf) {
     }
     if (mf->is_uplink == false) {
         while (true) {
-            get_input(LIGHT_GREEN"Flight ID: "RESET_COLOR, FLIGHTID_LEN, mf->flight);
+            get_input(LIGHT_GREEN"Flight ID: "RESET_COLOR, FLIGHT_ID_LEN, mf->flight);
             if (!regex_string("[A-Z0-9]{6}", mf->flight)) {
                 break;
             }
@@ -236,9 +236,9 @@ void usage() {
 };
 
 int main(int argc, char **argv) {
-    uint8_t ss[2] = {0xCB, 0x37};
-    uint8_t rr[2] = {0};
-    get_crc(ss, rr, 2);
+    // uint8_t ss[2] = {0xCB, 0x37};
+    // uint8_t rr[2] = {0};
+    // get_crc(ss, rr, 2);
 
     int c;
     int mode = MANUAL;

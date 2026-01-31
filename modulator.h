@@ -11,19 +11,18 @@
 
 //extern "C" void modulatorTest();
 //extern "C" void modulate(message_format *);
-void modulate(struct message_format *);
+at_error modulate(message_format *);
 
-void MSK(struct message_format *, float *);
 
-void AM(struct message_format *, float *);
+void AM(message_format *, const float *);
 
-void diff_code(struct message_format *, float *);
+void diff_code(message_format *, float *);
 
-void getIp(float *, int);
+void getIp(float *, size_t);
 
-void getFmR(const float *, float *, int);
+void getFmR(const float *, float *, size_t);
 
-void getTsR(float *, int);
+void getTsR(float *, size_t);
 
 void filter(const float *, const float *, const float *, float *, int, int);
 
@@ -38,8 +37,6 @@ void getT(float *, const float *, int);
 void getAM(float *, const float *, const float *, int);
 
 void getCfAm(float *, const float *, int, int);
-
-void convert_sse2(const float *inbuf, int8_t *outbuf, const unsigned int count);
 
 
 int resample(float *Input_real, float *Input_image, int len_Input, int p, int q, float *Output_real,

@@ -51,7 +51,7 @@ void get_crc(const uint8_t *lsb_msg, uint8_t *crc_res, int msg_len) {
     crc_res[0] = (uint8_t)(crc & 0xFF);
     crc_res[1] = (uint8_t)((crc >> 8) & 0xFF);
 
-    fprintf(stderr, "CRC: %d %d %d %02x %02x\n", crc,  crc_res[0], crc_res[1], crc_res[0], crc_res[1]);
+    fprintf(stderr, "CRC: %d %d %02x %02x\n", crc_res[0], crc_res[1], crc_res[0], crc_res[1]);
 
 }
 

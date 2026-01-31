@@ -30,8 +30,8 @@
 
 
 #define UPLINK_PRELEN (PREKEY_LEN + SYNC_LEN + SOH_LEN + MODE_LEN + ARN_LEN + ACK_LEN + LABEL_LEN + BI_LEN + STX_LEN)
-#define DOWNLINK_PRELEN (PREKEY_LEN + SYNC_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + SERIAL_LEN + FLIGHTID_LEN)
-#define TAIL_LEN  (SUFFIX_LEN + BCS_LEN + BCSSUF_LEN)
+#define DOWNLINK_PRELEN (PREKEY_LEN + SYNC_LEN + SOH_LEN + MODE_LEN + LABEL_LEN + ARN_LEN + BI_LEN + ACK_LEN + STX_LEN + SERIAL_LEN + FLIGHT_ID_LEN)
+#define TAIL_LEN  (SUFFIX_LEN + BCS_LEN + BCS_SUF_LEN)
 
 
 
@@ -41,7 +41,7 @@ uint8_t parity_char(uint8_t value);
 
 void get_crc(const uint8_t *lsb_msg, uint8_t *crc_res, int msg_len);
 
-void lsb(uint8_t *dst, const uint8_t *src, int len);
+void lsb(uint8_t *dst, const uint8_t *src, size_t len);
 
 at_error num2bits(int num, uint8_t *str, int bits, bool is_lsb);
 
@@ -50,7 +50,6 @@ void merge_elements(message_format *u) {
     const int pre_len = u->is_uplink == true ? UPLINK_PRELEN : DOWNLINK_PRELEN;
 
     u->total_bits = (pre_len + u->text_len + TAIL_LEN) * 8;
-    u->lsb_with_crc_msg = (uint8_t *) malloc(sizeof(uint8_t) * u->total_bits);
     uint8_t *rawMsg = malloc(sizeof(uint8_t) * (pre_len + u->text_len + TAIL_LEN));
 
     int duplen = 0;
@@ -78,23 +77,17 @@ void merge_elements(message_format *u) {
         append_char_parity(rawMsg, duplen, STX);
         if (!u->is_uplink) {
             append_str_parity(rawMsg, duplen, u->serial, SERIAL_LEN);
-            append_str_parity(rawMsg, duplen, u->flight, FLIGHTID_LEN);
+            append_str_parity(rawMsg, duplen, u->flight, FLIGHT_ID_LEN);
         }
         append_str_parity(rawMsg, duplen, u->text, u->text_len);
         append_char_parity(rawMsg, duplen, u->suffix);
-
-        // fprintf(stderr, "The message you have sent is :\n");
-        // for(int i = 0; i < duplen; i++){
-        //     fprintf(stderr, "%c", rawMsg[i]);
-        // }
-        // fprintf(stderr, "\n");
 
         get_crc(rawMsg + PREKEY_LEN + SYNC_LEN + SOH_LEN, u->crc, duplen - (PREKEY_LEN + SYNC_LEN + SOH_LEN));
     }else{
         if(u->is_uplink == false){
             append_char_parity(rawMsg, duplen, STX);
             append_str_parity(rawMsg, duplen, u->serial, SERIAL_LEN);
-            append_str_parity(rawMsg, duplen, u->flight, FLIGHTID_LEN);
+            append_str_parity(rawMsg, duplen, u->flight, FLIGHT_ID_LEN);
         }
         append_char_parity(rawMsg, duplen, u->suffix);
     }
@@ -127,17 +120,12 @@ uint8_t parity_char(uint8_t value) {
     return res;
 }
 
-void lsb(uint8_t *dst, const uint8_t *src, int len) {
-    int i = 0;
-    uint8_t *string = (uint8_t *) malloc(sizeof(uint8_t) * 8);
-    for (; i < len / 8; i++) {
-        num2bits(src[i], string, 8, true);
-        memcpy(dst + i * 8, string, 8);
+void lsb(uint8_t *dst, const uint8_t *src, const size_t len) {
+    for (int i = 0; i < len / BITS_PER_BYTE; i++) {
+        uint8_t out[BITS_PER_BYTE];
+        num2bits(src[i], out, BITS_PER_BYTE, true);
+        memcpy(dst + i * BITS_PER_BYTE, out, 8);
     }
-    //for (; i < len / 8; i++) {
-    //    itoa(*(src + (i - 16)), string, 8, true);
-    //    unsignedMemcpy_2(dst + i * 8, string, 8);
-    //}
 }
 
 at_error num2bits(const int num, uint8_t *str, const int bits, const bool is_lsb) {/*索引表*/

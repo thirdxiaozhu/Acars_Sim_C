@@ -8,6 +8,7 @@
 #include "modulator.h"
 #include "hackrf.h"
 #include "acarstrans.h"
+#include "usrp.h"
 #include "util.h"
 
 
@@ -19,7 +20,6 @@
 #define SUCCESS 0;
 #define ERROR 1;
 
-hackrf_args_t *hd = NULL;
 
 int tx_vga;
 char *endptr = NULL;
@@ -240,23 +240,28 @@ void usage() {
 int main(int argc, char **argv) {
     int c;
     int mode = MANUAL;
+    DEVICE dev = HACKRF;
+
     char *freq_c = "131450000";
     char *vga_c = "20";
     message_format mf = {0};
-    hd = (hackrf_args_t *) malloc(sizeof (hackrf_args_t));
+    hackrf_args_t hackrf;
+    usrp_args_t usrp;
 
     while ((c = getopt(argc, argv, "d:f:x:F:RvhHU")) != EOF) {
         switch (c) {
             case 'H':
+                dev = HACKRF;
                 break;
             case 'U':
+                dev = USRP;
                 break;
             case 'd':
-                hd->serial_number = optarg;
+                hackrf.serial_number = optarg;
                 break;
             case 'F':
-                hd->path = optarg;
-                if(strcmp(hd->path, "-") != 0){
+                hackrf.path = optarg;
+                if(strcmp(hackrf.path, "-") != 0){
                     mode = FILE;
                 } else{
                     mode = MANUAL;
@@ -269,7 +274,7 @@ int main(int argc, char **argv) {
                 vga_c = optarg;
                 break;
             case 'R':
-                hd->is_repeat = true;
+                hackrf.is_repeat = true;
                 break;
             case 'v':
                 show_version();
@@ -284,16 +289,25 @@ int main(int argc, char **argv) {
         }
     }
 
-    parse_u32(vga_c, &hd->vga_p);
-    parse_frequency_i64(freq_c, endptr, &hd->freq_p);
+    parse_u32(vga_c, &hackrf.vga_p);
+    parse_frequency_i64(freq_c, endptr, &hackrf.freq_p);
 
     if (mode == MANUAL) {
         generate_pkt(&mf);
         merge_elements(&mf);
         modulate(&mf);
     }
-    hd->data = mf.complex_i8;
 
-    transmit(hd);
+    switch (dev) {
+        case HACKRF: {
+            hackrf.data = mf.complex_i8;
+            hackrf_transmit(&hackrf);
+            break;
+        }
+        case USRP: {
+            break;
+        }
+    }
+
     return 0;
 }

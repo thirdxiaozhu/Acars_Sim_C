@@ -16,6 +16,9 @@ typedef enum {
     AT_ERROR_NULL,
 } at_error;
 
-
+typedef enum {
+    HACKRF = 0,
+    USRP
+}DEVICE;
 
 #endif //ACARS_SIM_C_ACARSTRANS_H

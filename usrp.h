@@ -6,5 +6,10 @@
 #define ACARSTRANS_USRP_H
 
 
+typedef struct {
+
+}usrp_args_t;
+
+
 
 #endif //ACARSTRANS_USRP_H

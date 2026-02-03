@@ -18,7 +18,7 @@ typedef struct hackrf_devs_s {
     char *data;
 }hackrf_args_t;
 
-int transmit(const hackrf_args_t *);
+int hackrf_transmit(const hackrf_args_t *);
 
 int initHackRF(bool repeat, const char *, const char *, int, int64_t, const char * data);
 
@@ -26,7 +26,7 @@ int startTransmit();
 
 int stopTransmit();
 
-void showEssence();
+void show_essence();
 
 int tx_callback(hackrf_transfer *transfer);
 

@@ -3,7 +3,3 @@
 //
 
 #include "usrp.h"
-
-typedef struct {
-
-}usrp_args_t;

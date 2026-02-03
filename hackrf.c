@@ -156,7 +156,7 @@ int initHackRF(const bool repeat, const char *serial_number, const char *path, c
 }
 
 int startTransmit() {
-    showEssence();
+    show_essence();
     fprintf(stderr, "Start transmitting......\n");
     fprintf(stderr, "Stop with Ctrl-C\n");
     gettimeofday(&t_start, NULL);
@@ -255,7 +255,7 @@ int stopTransmit() {
     return exit_code;
 }
 
-void showEssence(){
+void show_essence(){
     fprintf(stderr,"HackRF Settings:\n");
     fprintf(stderr,"Frequency: %.2f\n", freq/1e6);
     fprintf(stderr,"TX VGA: %d\n", vga_tx);
@@ -263,7 +263,7 @@ void showEssence(){
     fprintf(stderr,"\n");
 }
 
-int transmit(const hackrf_args_t * hd){
+int hackrf_transmit(const hackrf_args_t *hd){
     if(initHackRF(hd->is_repeat, hd->serial_number, hd->path, hd->vga_p, hd->freq_p, hd->data) != EXIT_SUCCESS){
         fprintf(stderr, "Init HackRF Failed!");
         return EXIT_FAILURE;

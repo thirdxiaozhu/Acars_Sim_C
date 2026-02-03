@@ -101,11 +101,6 @@ void AM(message_format *mf, const float *cpfsk) {
         *(mf->complex_i8 + i * 2 + 1) = (int8_t) *(output_i + i);
     }
 
-    const int remain_len = (mf->complex_length - valid_com_length) * 2;
-    int *zero_pendding = (int *) calloc (remain_len, sizeof (int));
-    memcpy(mf->complex_i8 + (valid_com_length * 2), zero_pendding, remain_len);
-
-
     FILE *_outfile;
     {
         if ((_outfile = fopen("complex_i8.txt", "wt+")) == NULL) {
@@ -145,7 +140,6 @@ void AM(message_format *mf, const float *cpfsk) {
     free(input_i);
     free(output_r);
     free(output_i);
-    free(zero_pendding);
     free(cpfskR);
     free(t);
     free(am);

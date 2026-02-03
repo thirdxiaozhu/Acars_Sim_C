@@ -11,5 +11,7 @@ typedef struct {
 }usrp_args_t;
 
 
+void test();
+
 
 #endif //ACARSTRANS_USRP_H

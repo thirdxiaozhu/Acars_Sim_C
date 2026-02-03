@@ -238,16 +238,22 @@ void usage() {
 };
 
 int main(int argc, char **argv) {
-    int c;
+
+    // test();
+    // exit(0);
+
     int mode = MANUAL;
     DEVICE dev = HACKRF;
 
     char *freq_c = "131450000";
-    char *vga_c = "20";
+    char *vga_c = "30";
     message_format mf = {0};
-    hackrf_args_t hackrf;
     usrp_args_t usrp;
+    char device_arg[32] = {0};
+    char path[256] = {0};
+    bool is_repeat = false;
 
+    int c;
     while ((c = getopt(argc, argv, "d:f:x:F:RvhHU")) != EOF) {
         switch (c) {
             case 'H':
@@ -257,11 +263,13 @@ int main(int argc, char **argv) {
                 dev = USRP;
                 break;
             case 'd':
-                hackrf.serial_number = optarg;
+                // hackrf.serial_number = optarg;
+                memcpy(device_arg, optarg, strlen(optarg));
+                fprintf(stderr, "%s %s", device_arg, optarg);
                 break;
             case 'F':
-                hackrf.path = optarg;
-                if(strcmp(hackrf.path, "-") != 0){
+                memcpy(path, optarg, strlen(optarg));
+                if(strcmp(path, "-") != 0){
                     mode = FILE;
                 } else{
                     mode = MANUAL;
@@ -274,7 +282,7 @@ int main(int argc, char **argv) {
                 vga_c = optarg;
                 break;
             case 'R':
-                hackrf.is_repeat = true;
+                is_repeat = true;
                 break;
             case 'v':
                 show_version();
@@ -289,8 +297,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    parse_u32(vga_c, &hackrf.vga_p);
-    parse_frequency_i64(freq_c, endptr, &hackrf.freq_p);
 
     if (mode == MANUAL) {
         generate_pkt(&mf);
@@ -300,7 +306,14 @@ int main(int argc, char **argv) {
 
     switch (dev) {
         case HACKRF: {
+            hackrf_args_t hackrf;
+            hackrf.serial_number = device_arg;
+            hackrf.path = path;
+            hackrf.is_repeat = is_repeat;
             hackrf.data = mf.complex_i8;
+            parse_u32(vga_c, &hackrf.vga_p);
+            parse_frequency_i64(freq_c, endptr, &hackrf.freq_p);
+
             hackrf_transmit(&hackrf);
             break;
         }

@@ -101,7 +101,7 @@ int initHackRF(const bool repeat, const char *serial_number, const char *path, c
         return EXIT_FAILURE;
     }
 
-    if (path != NULL) {
+    if (strlen(path)) {
         file = fopen(path, "rb");
         if (file == NULL) {
             fprintf(stderr, "Failed to open file: %s\n", path);
@@ -135,7 +135,6 @@ int initHackRF(const bool repeat, const char *serial_number, const char *path, c
         return EXIT_FAILURE;
     }
 
-    //result = parse_frequencyi64(freq_c, endptr, &freq_hz);
     result = hackrf_set_freq(device, freq);
 
     if (result != HACKRF_SUCCESS) {

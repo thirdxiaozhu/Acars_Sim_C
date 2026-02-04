@@ -35,6 +35,8 @@ const static char DEL = 0X7F;
 #define TEXT_MAX_LEN 220
 #define CRC_LEN 2
 
+#define SAMPLE_MAX_LEN (BAUD * F_S * F_S_2 * RESAMPLE)
+
 
 typedef struct message_format {
     bool is_uplink;
@@ -49,12 +51,13 @@ typedef struct message_format {
     uint8_t crc[CRC_LEN];
     uint8_t suffix;
     size_t text_len;
-    // uint8_t *lsb_with_crc_msg;
     uint8_t lsb_with_crc_msg[MAX_BUFFER_LEN << 3];
     size_t total_bits;
     int complex_length;
     float *cpfsk;
-    char complex_i8[BAUD * F_S * F_S_2 * RESAMPLE*2]; //signed char  <--> __int_8
+    // char complex_i8[SAMPLE_MAX_LEN * 2]; //signed char  <--> __int_8
+    float out_r[SAMPLE_MAX_LEN];
+    float out_i[SAMPLE_MAX_LEN];
 } message_format;
 
 

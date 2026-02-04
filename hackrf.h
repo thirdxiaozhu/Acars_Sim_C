@@ -15,7 +15,7 @@ typedef struct hackrf_devs_s {
     char *path;
     uint32_t vga_p;
     int64_t freq_p;
-    char *data;
+    char data[SAMPLE_MAX_LEN * 2];
 }hackrf_args_t;
 
 int hackrf_transmit(const hackrf_args_t *);
@@ -29,5 +29,7 @@ int stopTransmit();
 void show_essence();
 
 int tx_callback(hackrf_transfer *transfer);
+
+void hackrf_transfer_data(hackrf_args_t *args, const message_format *mf);
 
 #endif //ACARS_SIM_C_HACKRF_H

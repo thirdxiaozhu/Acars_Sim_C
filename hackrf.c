@@ -347,3 +347,23 @@ int tx_callback(hackrf_transfer *transfer) {
         return -1;
     }
 }
+
+void hackrf_transfer_data(hackrf_args_t *args, const message_format *mf) {
+    for (int i = 0; i < SAMPLE_MAX_LEN; i++) {
+        *(args->data + i * 2) = (int8_t) *(mf->out_r + i);
+        *(args->data + i * 2 + 1) = (int8_t) *(mf->out_i + i);
+    }
+
+    FILE *_outfile;
+    {
+        if ((_outfile = fopen("complex_i8.txt", "wt+")) == NULL) {
+            puts("Open IQ file failed!");
+            exit(0);
+        }
+
+        for (int i = 0; i < mf->complex_length * 2; i++) {
+            fputc(*(args->data + i), _outfile);
+        }
+        fclose(_outfile);
+    }
+}

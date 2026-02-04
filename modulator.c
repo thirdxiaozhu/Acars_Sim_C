@@ -82,7 +82,6 @@ void AM(message_format *mf, const float *cpfsk) {
     float *input_i = (float *) malloc(sizeof(float) * total_length);
     float *output_r = (float *) malloc(sizeof(float) * valid_com_length);
     float *output_i = (float *) malloc(sizeof(float) * valid_com_length);
-    //mf->complex_i8 = (char *) malloc(sizeof(char) * mf->complex_length * 2);
 
     getCpfskR(cpfskR, cpfsk, mf->total_bits * F_S);
     getT(t, cpfskR, valid_length);
@@ -94,25 +93,14 @@ void AM(message_format *mf, const float *cpfsk) {
         *(input_i + i) = 0.0;
     }
 
-    resample(input_r, input_i, total_length, RESAMPLE, 1, output_r, output_i, valid_com_length);
-
-    for (int i = 0; i < valid_com_length; i++) {
-        *(mf->complex_i8 + i * 2) = (int8_t) *(output_r + i);
-        *(mf->complex_i8 + i * 2 + 1) = (int8_t) *(output_i + i);
-    }
+    resample(input_r, input_i, total_length, RESAMPLE, 1, mf->out_r, mf->out_i, valid_com_length);
+    //
+    // for (int i = 0; i < valid_com_length; i++) {
+    //     *(mf->complex_i8 + i * 2) = (int8_t) *(output_r + i);
+    //     *(mf->complex_i8 + i * 2 + 1) = (int8_t) *(output_i + i);
+    // }
 
     FILE *_outfile;
-    {
-        if ((_outfile = fopen("complex_i8.txt", "wt+")) == NULL) {
-            puts("Open IQ file failed!");
-            exit(0);
-        }
-
-        for (int i = 0; i < mf->complex_length * 2; i++) {
-            fputc(*(mf->complex_i8 + i), _outfile);
-        }
-        fclose(_outfile);
-    }
     {
         if ((_outfile = fopen("cfam.txt", "wt+")) == NULL) {
             puts("Open IQ file failed!");

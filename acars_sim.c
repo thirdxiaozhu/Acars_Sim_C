@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
 
     char *freq_c = "131450000";
     char *vga_c = "30";
-    message_format mf = {0};
+    message_format *mf = malloc(sizeof(message_format));
     usrp_args_t usrp;
     char device_arg[32] = {0};
     char path[256] = {0};
@@ -294,9 +294,9 @@ int main(int argc, char **argv) {
 
 
     if (mode == MANUAL) {
-        generate_pkt(&mf);
-        merge_elements(&mf);
-        modulate(&mf);
+        generate_pkt(mf);
+        merge_elements(mf);
+        modulate(mf);
     }
 
     switch (dev) {
@@ -305,9 +305,10 @@ int main(int argc, char **argv) {
             hackrf.serial_number = device_arg;
             hackrf.path = path;
             hackrf.is_repeat = is_repeat;
-            hackrf.data = mf.complex_i8;
             parse_u32(vga_c, &hackrf.vga_p);
             parse_frequency_i64(freq_c, endptr, &hackrf.freq_p);
+
+            hackrf_transfer_data(&hackrf, mf);
 
             hackrf_transmit(&hackrf);
             break;
@@ -316,6 +317,8 @@ int main(int argc, char **argv) {
             break;
         }
     }
+
+    free(mf);
 
     return 0;
 }

@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
     DEVICE dev = HACKRF;
 
     int64_t freq = 131450000;
-    uint32_t gain = 30;
+    uint32_t gain = 40;
     message_format *mf = malloc(sizeof(message_format));
     char device_arg[32] = {0};
     char path[256] = {0};

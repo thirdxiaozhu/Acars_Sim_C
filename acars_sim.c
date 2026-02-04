@@ -17,7 +17,6 @@
 
 
 int tx_vga;
-char *endptr = NULL;
 int64_t freq_hz;
 
 int parse_u32(char *s, uint32_t *const value) {
@@ -70,8 +69,8 @@ at_error regex_string(const char *regex, const char *text) {
     return AT_ERROR_INTERNAL;
 }
 
-at_error regex_char(char *regex, char c) {
-    char *temp = (char *) malloc(sizeof(char));
+at_error regex_char(const char *regex, const char c) {
+    char *temp = (char *) malloc(sizeof(char) * 2);
     *temp = c;
 
     const at_error ret = regex_string(regex, temp);
@@ -233,17 +232,15 @@ void usage() {
 };
 
 int main(int argc, char **argv) {
-
     // test();
     // exit(0);
 
     int mode = MANUAL;
     DEVICE dev = HACKRF;
 
-    char *freq_c = "131450000";
-    char *vga_c = "30";
+    int64_t freq = 131450000;
+    uint32_t gain = 30;
     message_format *mf = malloc(sizeof(message_format));
-    usrp_args_t usrp;
     char device_arg[32] = {0};
     char path[256] = {0};
     bool is_repeat = false;
@@ -271,10 +268,10 @@ int main(int argc, char **argv) {
                 }
                 break;
             case 'f':
-                freq_c = optarg;
+                parse_frequency_i64(optarg, NULL, &freq);
                 break;
             case 'x':
-                vga_c = optarg;
+                parse_u32(optarg, &gain);
                 break;
             case 'R':
                 is_repeat = true;
@@ -301,19 +298,41 @@ int main(int argc, char **argv) {
 
     switch (dev) {
         case HACKRF: {
-            hackrf_args_t hackrf;
+            hackrf_args_t hackrf = {0};
             hackrf.serial_number = device_arg;
             hackrf.path = path;
             hackrf.is_repeat = is_repeat;
-            parse_u32(vga_c, &hackrf.vga_p);
-            parse_frequency_i64(freq_c, endptr, &hackrf.freq_p);
+            hackrf.gain = gain;
+            hackrf.freq = freq;
 
             hackrf_transfer_data(&hackrf, mf);
-
             hackrf_transmit(&hackrf);
             break;
         }
         case USRP: {
+
+            // 如果不放在栈上，就会溢出
+            usrp_args_t *usrp = malloc(sizeof(usrp_args_t));
+
+            usrp->device_args = "type=b200,serial=192113";
+            usrp->channel = 0;
+            usrp->gain = gain;
+            usrp->freq = freq;
+            usrp->rate = SAMP_RATE;
+
+            usrp->tune_request.target_freq = (double) freq;
+            usrp->tune_request.rf_freq_policy = UHD_TUNE_REQUEST_POLICY_AUTO;
+            usrp->tune_request.dsp_freq_policy = UHD_TUNE_REQUEST_POLICY_AUTO;
+
+            usrp->stream_args.cpu_format = "fc32";
+            usrp->stream_args.otw_format = "sc16";
+            usrp->stream_args.args = "";
+            usrp->stream_args.channel_list = &usrp->channel;
+            usrp->stream_args.n_channels = 1;
+
+            usrp_transfer_data(usrp, mf);
+            usrp_transmit(usrp);
+
             break;
         }
     }

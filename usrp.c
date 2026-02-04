@@ -4,7 +4,11 @@
 
 #include <stdio.h>
 #include <signal.h>
-#include "uhd.h"
+#include "acarstrans.h"
+#include "usrp.h"
+
+#include <unistd.h>
+
 
 #define EXECUTE_OR_GOTO(label, ...) \
 if (__VA_ARGS__) {              \
@@ -14,12 +18,60 @@ goto label;                 \
 
 bool stop_signal_called = false;
 
-void sigint_handler(int code)
-{
+void sigint_handler(int code) {
     (void)code;
     stop_signal_called = true;
 }
 
+at_error usrp_transmit(usrp_args_t *args) {
+    if (!args->device_args) {
+        fprintf(stderr, "USRP device args is null");
+        return AT_ERROR_NULL;
+    }
+    uhd_usrp_make(&args->usrp, args->device_args);
+    uhd_tx_streamer_make(&args->tx_streamer);
+    uhd_tx_metadata_make(&args->md, false, 0, 2, true, false);
+
+    uhd_usrp_set_tx_rate(args->usrp, args->rate, args->channel);
+    fprintf(stderr, "Setting TX Rate: %f...\n", args->rate);
+
+    uhd_usrp_set_tx_gain(args->usrp, args->gain, args->channel, "");
+    fprintf(stderr, "Setting TX Gain: %d db...\n", args->gain);
+
+    uhd_usrp_set_tx_freq(args->usrp, &args->tune_request, args->channel, &args->tune_result);
+    fprintf(stderr, "Setting TX frequency: %f MHz...\n", args->freq / 1e6);
+
+    uhd_usrp_get_tx_stream(args->usrp, &args->stream_args, args->tx_streamer);
+
+    size_t num_samps_sent  = 0;
+
+    while (1) {
+        if (stop_signal_called)
+            break;
+
+        const void *buffs[1];
+        buffs[0] = args->data; // args->data 会衰减成 float*
+
+        uhd_tx_streamer_send(
+            args->tx_streamer, buffs, SAMP_RATE, &args->md, 2, &num_samps_sent);
+        fprintf(stderr, "Sent %zu samples\n", num_samps_sent);
+
+        // sleep(1);
+    }
+
+    return AT_OK;
+}
+
+void usrp_transfer_data(usrp_args_t *args, const message_format *mf) {
+    for (int i = 0; i < mf->complex_length; i++) {
+        *(args->data + i * 2) =  *(mf->out_r + i) / 128.0f;
+        *(args->data + i * 2 + 1) =  *(mf->out_i + i) / 128.0f;
+    }
+
+    FILE *f = fopen("complex_f32.bin", "wb");
+    fwrite(args->data, sizeof(float), SAMPLE_MAX_LEN * 2, f);
+    fclose(f);
+}
 
 void test() {
     int return_code          = EXIT_SUCCESS;
@@ -29,10 +81,9 @@ void test() {
     double rate              = 1152000;
     double gain              = 40;
 
-
     uhd_usrp_handle usrp;
     fprintf(stderr, "Creating USRP with args \"%s\"...\n", "aa");
-    EXECUTE_OR_GOTO(free_option_strings, uhd_usrp_make(&usrp, "type=b200,serial=3459F45"))
+    EXECUTE_OR_GOTO(free_option_strings, uhd_usrp_make(&usrp, "type=b200,serial=192113"))
 
     // Create TX streamer
     uhd_tx_streamer_handle tx_streamer;
@@ -50,10 +101,9 @@ void test() {
         .rf_freq_policy = UHD_TUNE_REQUEST_POLICY_AUTO,
         .dsp_freq_policy = UHD_TUNE_REQUEST_POLICY_AUTO
     };
-    uhd_tune_result_t tune_result;
 
     uhd_stream_args_t stream_args = {
-        .cpu_format = "sc16",
+        .cpu_format = "fc32",
         .otw_format = "sc16",
         .args = "",
         .channel_list = &channel,
@@ -61,8 +111,6 @@ void test() {
     };
 
     size_t samps_per_buff;
-    float *buff = NULL;
-    const void **buffs_ptr = NULL;
 
     // Set rate
     fprintf(stderr, "Setting TX Rate: %f...\n", rate);
@@ -74,12 +122,13 @@ void test() {
 
     // Set gain
     fprintf(stderr, "Setting TX Gain: %f db...\n", gain);
-    EXECUTE_OR_GOTO(free_tx_metadata, uhd_usrp_set_tx_gain(usrp, gain, 0, ""))
+    EXECUTE_OR_GOTO(free_tx_metadata, uhd_usrp_set_tx_gain(usrp, gain, channel, ""))
 
     // See what gain actually is
     EXECUTE_OR_GOTO(free_tx_metadata, uhd_usrp_get_tx_gain(usrp, channel, "", &gain))
     fprintf(stderr, "Actual TX Gain: %f...\n", gain);
 
+    uhd_tune_result_t tune_result;
     // Set frequency
     fprintf(stderr, "Setting TX frequency: %f MHz...\n", freq / 1e6);
     EXECUTE_OR_GOTO(free_tx_metadata,
@@ -90,7 +139,6 @@ void test() {
     fprintf(stderr, "Actual TX frequency: %f MHz...\n", freq / 1e6);
 
     // Set up streamer
-    stream_args.channel_list = &channel;
     EXECUTE_OR_GOTO(
         free_tx_streamer, uhd_usrp_get_tx_stream(usrp, &stream_args, tx_streamer))
 
@@ -99,6 +147,9 @@ void test() {
         free_tx_streamer, uhd_tx_streamer_max_num_samps(tx_streamer, &samps_per_buff))
 
     fprintf(stderr, "Buffer size in samples: %zu\n", samps_per_buff);
+
+    float *buff = NULL;
+    const void **buffs_ptr = NULL;
     buff = calloc(samps_per_buff * 2, sizeof(float));
     buffs_ptr = (const void **) &buff;
     size_t i = 0;
@@ -128,7 +179,7 @@ void test() {
 
         num_acc_samps += num_samps_sent;
 
-            fprintf(stderr, "Sent %zu samples\n", num_samps_sent);
+        fprintf(stderr, "Sent %zu samples\n", num_samps_sent);
     }
 
 free_buff:

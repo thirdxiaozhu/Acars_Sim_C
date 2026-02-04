@@ -17,6 +17,8 @@
 #define EPSILON 0.000001
 #define RESAMPLE 12
 
+#define SAMP_RATE 1152000
+
 void get_crc(const uint8_t *lsb_msg, uint8_t *crc_res, int msg_len);
 
 

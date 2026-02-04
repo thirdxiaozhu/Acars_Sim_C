@@ -73,15 +73,13 @@ void AM(message_format *mf, const float *cpfsk) {
     const int valid_length = mf->total_bits * F_S * F_S_2;
     const int total_length = BAUD * F_S * F_S_2;
     const int valid_com_length = valid_length * RESAMPLE;
-    mf->complex_length = total_length * RESAMPLE;
+    mf->complex_length = valid_com_length;
     float *cpfskR = (float *) malloc(sizeof(float) * valid_length);
     float *t = (float *) malloc(sizeof(float) * valid_length);
     float *am = (float *) malloc(sizeof(float) * valid_length);
     float *cf_am = (float *) malloc(sizeof(float) * total_length);
     float *input_r = (float *) malloc(sizeof(float) * total_length);
     float *input_i = (float *) malloc(sizeof(float) * total_length);
-    float *output_r = (float *) malloc(sizeof(float) * valid_com_length);
-    float *output_i = (float *) malloc(sizeof(float) * valid_com_length);
 
     getCpfskR(cpfskR, cpfsk, mf->total_bits * F_S);
     getT(t, cpfskR, valid_length);
@@ -94,11 +92,6 @@ void AM(message_format *mf, const float *cpfsk) {
     }
 
     resample(input_r, input_i, total_length, RESAMPLE, 1, mf->out_r, mf->out_i, valid_com_length);
-    //
-    // for (int i = 0; i < valid_com_length; i++) {
-    //     *(mf->complex_i8 + i * 2) = (int8_t) *(output_r + i);
-    //     *(mf->complex_i8 + i * 2 + 1) = (int8_t) *(output_i + i);
-    // }
 
     FILE *_outfile;
     {
@@ -126,8 +119,6 @@ void AM(message_format *mf, const float *cpfsk) {
 
     free(input_r);
     free(input_i);
-    free(output_r);
-    free(output_i);
     free(cpfskR);
     free(t);
     free(am);

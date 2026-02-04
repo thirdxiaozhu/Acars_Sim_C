@@ -13,7 +13,6 @@
 #include "hackrf.h"
 #include "pkt.h"
 
-#define SAMP_RATE 1152000
 #define HW_SYNC_MODE_OFF 0
 int exit_code = EXIT_SUCCESS;
 //struct message_format *messageFormat;
@@ -263,7 +262,7 @@ void show_essence(){
 }
 
 int hackrf_transmit(const hackrf_args_t *hd){
-    if(initHackRF(hd->is_repeat, hd->serial_number, hd->path, hd->vga_p, hd->freq_p, hd->data) != EXIT_SUCCESS){
+    if(initHackRF(hd->is_repeat, hd->serial_number, hd->path, hd->gain, hd->freq, hd->data) != EXIT_SUCCESS){
         fprintf(stderr, "Init HackRF Failed!");
         return EXIT_FAILURE;
     }
@@ -349,7 +348,7 @@ int tx_callback(hackrf_transfer *transfer) {
 }
 
 void hackrf_transfer_data(hackrf_args_t *args, const message_format *mf) {
-    for (int i = 0; i < SAMPLE_MAX_LEN; i++) {
+    for (int i = 0; i < mf->complex_length; i++) {
         *(args->data + i * 2) = (int8_t) *(mf->out_r + i);
         *(args->data + i * 2 + 1) = (int8_t) *(mf->out_i + i);
     }

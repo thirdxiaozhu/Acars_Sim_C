@@ -13,8 +13,8 @@ typedef struct hackrf_devs_s {
     bool is_repeat;
     char *serial_number;
     char *path;
-    uint32_t vga_p;
-    int64_t freq_p;
+    uint32_t gain;
+    int64_t freq;
     char data[SAMPLE_MAX_LEN * 2];
 }hackrf_args_t;
 

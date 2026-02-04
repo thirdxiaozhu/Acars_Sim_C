@@ -35,7 +35,7 @@ const static char DEL = 0X7F;
 #define TEXT_MAX_LEN 220
 #define CRC_LEN 2
 
-#define SAMPLE_MAX_LEN (BAUD * F_S * F_S_2 * RESAMPLE)
+#define SAMPLE_MAX_LEN (BAUD * F_S * F_S_2 * RESAMPLE) // 等于SAMP_RATE 1152000
 
 
 typedef struct message_format {

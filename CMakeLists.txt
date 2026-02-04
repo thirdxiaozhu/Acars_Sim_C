@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 project(acarstrans)
+set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fsanitize=leak -g")
 
 AUX_SOURCE_DIRECTORY(. SRC_LIST) #把当前目录(.)下所有源代码文件和头文件加入变量SRC_LIST
 add_executable(acarstrans_exe ${SRC_LIST})

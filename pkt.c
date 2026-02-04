@@ -2,10 +2,6 @@
 // Created by jiaxv on 2022/10/27.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
 #include "pkt.h"
 
 
@@ -38,8 +34,6 @@
 void parity_str(uint8_t *dst, const uint8_t *src, int msg_len) ;
 
 uint8_t parity_char(uint8_t value);
-
-void get_crc(const uint8_t *lsb_msg, uint8_t *crc_res, int msg_len);
 
 void lsb(uint8_t *dst, const uint8_t *src, size_t len);
 
@@ -128,28 +122,3 @@ void lsb(uint8_t *dst, const uint8_t *src, const size_t len) {
     }
 }
 
-at_error num2bits(const int num, uint8_t *str, const int bits, const bool is_lsb) {/*索引表*/
-    if (!str) {
-        return AT_ERROR_NULL;
-    }
-
-    int i = 0, j;
-    unsigned unum = (unsigned) num;
-    while (i < bits) {
-        if (num) {
-            char index[] = "01";
-            str[i++] = index[unum % 2];
-            unum /= 2;
-        } else {
-            str[i++] = 0;
-        }
-    }
-    if (!is_lsb) {
-        for (j = 0; j <= (i - 1) / 2; j++) {
-            char temp = str[j];
-            str[j] = str[i - 1 - j];
-            str[i - 1 - j] = temp;
-        }
-    }
-    return AT_OK;
-}

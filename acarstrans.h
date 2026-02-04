@@ -5,6 +5,16 @@
 #ifndef ACARS_SIM_C_ACARSTRANS_H
 #define ACARS_SIM_C_ACARSTRANS_H
 
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <getopt.h>
+#include <regex.h>
+
 #define VERSION 0.1
 
 typedef enum {

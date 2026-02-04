@@ -144,7 +144,6 @@ void AM(message_format *mf, const float *cpfsk) {
     free(t);
     free(am);
     free(cf_am);
-
 }
 
 void diff_code(message_format *mf, float *diff) {

@@ -5,8 +5,6 @@
 #ifndef ACARS_SIM_C_GENMSG_H
 #define ACARS_SIM_C_GENMSG_H
 
-#include <stdbool.h>
-#include <stdint.h>
 #include "acarstrans.h"
 #include "util.h"
 

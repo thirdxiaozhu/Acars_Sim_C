@@ -63,5 +63,6 @@ typedef struct message_format {
 
 void merge_elements(message_format *);
 
+int generate_pkt(message_format *mf);
 
 #endif //ACARS_SIM_C_GENMSG_H

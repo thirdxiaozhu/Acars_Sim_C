@@ -24,6 +24,7 @@ void sigint_handler(int code) {
 }
 
 at_error usrp_transmit(usrp_args_t *args) {
+
     if (!args->device_args) {
         fprintf(stderr, "USRP device args is null");
         return AT_ERROR_NULL;
@@ -56,7 +57,7 @@ at_error usrp_transmit(usrp_args_t *args) {
             args->tx_streamer, buffs, SAMP_RATE, &args->md, 2, &num_samps_sent);
         fprintf(stderr, "Sent %zu samples\n", num_samps_sent);
 
-        sleep(1);
+        usleep(500000);
     }
 
     return AT_OK;

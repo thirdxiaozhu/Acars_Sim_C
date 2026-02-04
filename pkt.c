@@ -122,3 +122,114 @@ void lsb(uint8_t *dst, const uint8_t *src, const size_t len) {
     }
 }
 
+
+int generate_pkt(message_format *mf) {
+    while (true) {
+        uint8_t isUplink[1] = {0};
+        get_input(LIGHT_GREEN"Is Uplink?  [Y/N]: "RESET_COLOR, 1, isUplink);
+
+        if (regex_char("[YyNn]", *isUplink) == AT_OK) {
+            mf->is_uplink = (*isUplink == 'Y' || *isUplink == 'y') ? true : false;
+            break;
+        }
+    }
+    while (true) {
+        uint8_t mode[MODE_LEN] = {0};
+        get_input(LIGHT_GREEN"Mode: "RESET_COLOR, MODE_LEN, mode);
+        if (*mode == '2') {
+            mf->mode = *mode;
+            break;
+        }
+        printf(LIGHT_RED"Only support Mode A, please input '2' !\n"RESET_COLOR);
+    }
+    while (true) {
+        uint8_t temp_arn[ARN_LEN] = {0};
+        for (int r = 0; r < ARN_LEN; r++) {
+            *(mf->arn + r) = '.';
+        }
+
+        get_input(LIGHT_GREEN"Address: "RESET_COLOR, ARN_LEN, temp_arn);
+
+        if (!regex_string("[A-Z0-9.-]", temp_arn)) {
+            memcpy(mf->arn + ARN_LEN - strlen(temp_arn), temp_arn, strlen(temp_arn));
+            break;
+        }
+        printf(LIGHT_RED"Valid characters are {A-Z} {0-9} {.} and {-} !\n"RESET_COLOR);
+    }
+    while (true) {
+        uint8_t ack[ACK_LEN] = {0};
+        get_input(LIGHT_GREEN"ACK (Enter for NAK): "RESET_COLOR, ACK_LEN, ack);
+
+        if (!strlen(ack)) {
+            mf->ack = NAK_TAG;
+            break;
+        }
+
+        if (mf->is_uplink == true) {
+            if (!regex_char("[0-9]", *ack)) {
+                mf->ack = *ack;
+                break;
+            }
+            printf(LIGHT_RED"Uplink technical acknowledgement must be a character between 0 to 9 or a NAK !\n"RESET_COLOR);
+        } else {
+            if (!regex_char("[A-Za-z]", *ack)) {
+                mf->ack = *ack;
+                break;
+            }
+            printf(LIGHT_RED"Downlink technical acknowledgement must be a character between A to Z / a to z / a NAK !\n"RESET_COLOR);
+        }
+    }
+    while (true) {
+        get_input(LIGHT_GREEN"Label: "RESET_COLOR, LABEL_LEN, mf->label);
+
+        if (!regex_string("[A-Z0-9]{2}", mf->label)) {
+            break;
+        }
+        printf(LIGHT_RED"Valid characters are {A-Z} and {0-9} and the length is 2!\n"RESET_COLOR);
+    }
+
+    while (true) {
+        uint8_t bi[BI_LEN] = {0};
+        if (mf->is_uplink == true) {
+            get_input(LIGHT_GREEN"UBI (Enter for NAK): "RESET_COLOR, BI_LEN, bi);
+            if (!strlen(bi)) {
+                mf->bi = NAK_TAG;
+                break;
+            }
+            if (!regex_char("[A-Za-z]", *bi)) {
+                mf->bi = *bi;
+                break;
+            }
+            printf(LIGHT_RED"Uplink technical acknowledgement must be a character between A to Z / a to z / a NAK !\n"RESET_COLOR);
+        } else if (mf->is_uplink == false) {
+            get_input(LIGHT_GREEN"DBI: ", BI_LEN, bi);
+            if (!strlen(bi)) {
+                mf->bi = NAK_TAG;
+                break;
+            }
+            if (!regex_char("[0-9]", *bi)) {
+                mf->bi = *bi;
+                break;
+            }
+            printf(LIGHT_RED"Downlink technical acknowledgement must be a character between 0-9 or a NAK !\n"RESET_COLOR);
+        }
+    }
+    while (true) {
+        get_input(LIGHT_GREEN"TEXT: "RESET_COLOR, TEXT_MAX_LEN, mf->text);
+        mf->text_len = strlen(mf->text);
+        break;
+    }
+    if (mf->is_uplink == false) {
+        while (true) {
+            get_input(LIGHT_GREEN"Flight ID: "RESET_COLOR, FLIGHT_ID_LEN, mf->flight);
+            if (!regex_string("[A-Z0-9]{6}", mf->flight)) {
+                break;
+            }
+            printf(LIGHT_RED"The Length of flight id must be 6 and only {A-Z}/{0-9} are avilable!\n"RESET_COLOR);
+        }
+        memcpy(mf->serial, "M01A", SERIAL_LEN);
+    }
+
+    mf->suffix = ETX;
+}
+

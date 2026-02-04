@@ -81,3 +81,87 @@ at_error num2bits(const int num, uint8_t *str, const int bits, const bool is_lsb
     }
     return AT_OK;
 }
+
+int parse_u32(char *s, uint32_t *const value) {
+    uint_fast8_t base = 10;
+    char *s_end;
+    uint64_t ulong_value;
+
+    if (strlen(s) > 2) {
+        if (s[0] == '0') {
+            if ((s[1] == 'x') || (s[1] == 'X')) {
+                base = 16;
+                s += 2;
+            } else if ((s[1] == 'b') || (s[1] == 'B')) {
+                base = 2;
+                s += 2;
+            }
+        }
+    }
+
+    s_end = s;
+    ulong_value = strtoul(s, &s_end, base);
+    if ((s != s_end) && (*s_end == 0)) {
+        *value = (uint32_t) ulong_value;
+        return SUCCESS;
+    } else {
+        return ERROR;
+    }
+}
+
+int parse_frequency_i64(char *optarg, char *endptr, int64_t *value) {
+    *value = (int64_t) strtod(optarg, &endptr);
+    if (optarg == endptr) {
+        return ERROR;
+    }
+    return SUCCESS;
+}
+
+at_error regex_string(const char *regex, const char *text) {
+    if (!text) {
+        return AT_ERROR_NULL;
+    }
+    regex_t oregex;   // 编译后的结构体
+    if (!regcomp(&oregex, regex, REG_EXTENDED | REG_NOSUB)) {
+        if (!regexec(&oregex, text, 0, NULL, 0)) {
+            regfree(&oregex);
+            return AT_OK;
+        }
+        return AT_ERROR_INVALID;
+    }
+    return AT_ERROR_INTERNAL;
+}
+
+at_error regex_char(const char *regex, const char c) {
+    char *temp = (char *) malloc(sizeof(char) * 2);
+    *temp = c;
+
+    const at_error ret = regex_string(regex, temp);
+    free(temp);
+
+    return ret;
+}
+
+at_error get_input(const char* prompt, const size_t max_size, uint8_t *output) {
+    if (!output) {
+        return AT_ERROR_NULL;
+    }
+    char input[MAX_BUFFER_LEN] = {0};
+
+    printf("%s", prompt);
+    if (fgets(input, (int)max_size + 1, stdin) != NULL) {
+        size_t len = strlen(input);
+        if (len > 0 && input[len-1] == '\n') {
+            input[len-1] = '\0';
+        } else if (len == max_size) {
+            // 如果输入长度等于缓冲区大小，可能存在未读取的字符
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF);  // 清理剩余字符
+        }
+
+        memcpy(output, input, max_size);
+        return AT_OK;
+    }
+    return AT_ERROR_INVALID;
+}
+

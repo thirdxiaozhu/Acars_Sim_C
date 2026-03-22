@@ -86,6 +86,8 @@ void AM(message_format *mf, const float *cpfsk) {
     getAM(am, cpfskR, t, valid_length);
     getCfAm(cf_am, am, valid_length, total_length);
 
+    fprintf(stderr, "%d\n", valid_length);
+
     filter(am_b, am_a, cf_am, input_r, total_length, 3);
     for (int i = 0; i < total_length; i++) {
         *(input_i + i) = 0.0;

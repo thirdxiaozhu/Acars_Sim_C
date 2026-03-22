@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
             // 太大了，如果不放在栈上，就会报错
             usrp_args_t *usrp = malloc(sizeof(usrp_args_t));
 
-            usrp->device_args = "type=b200,serial=3459F45";
+            usrp->device_args = "";
             usrp->channel = 0;
             usrp->gain = gain;
             usrp->freq = freq;
